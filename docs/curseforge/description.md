@@ -21,7 +21,7 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - **Learns from your own catches:** after 40 catches in a zone, its ranking uses your real results instead of estimates. New Forever zones are ranked automatically as soon as you fish them.
 
 ### Tips that fit the moment
-- **Gear checklist:** shows the fishing gear you're still missing (better pole, lures, Fish Bowl, Fishing Rack, Fishing Hut, hat, boots, fishing line, gloves enchant) and exactly where to get each one.
+- **Gear checklist:** shows the fishing gear you're still missing (better pole, lures, Fish Bowl, Fishing Rack, Fishing Hut, hat, boots, fishing line, gloves enchant) and exactly where to get each one. Gear you already have is highlighted in green, and tradable gear sitting on one of your other characters in blue, so you know to mail it over. The first page shows what fits your current skill.
 - No lure on your pole, or about to expire.
 - Skill capped, and where to train next (Old Man Heming, Nat Pagle).
 - Night or day: Nightfin Snapper vs Sunscale Salmon.
@@ -42,9 +42,12 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - Every icon and item name comes straight from the game client, in your language.
 - Tells you when WoW: Forever was patched so you know to grab a ReelGold update (and what changed after updating).
 
+### Easy to start
+- A short **How to use** guide opens the first time you launch ReelGold (and any time with `/rgold guide`).
+
 ## Commands
 `/rgold` (or `/reelgold`) opens the window. Add one of:
-- `best`, `spots`, `tips`, `settings` or `session` to open that tab
+- `best`, `spots`, `tips`, `settings`, `session` or `guide` to open that tab
 - `hud` to show or hide the HUD
 - `reset` to start a new session
 - `minimap` to show or hide the minimap button
