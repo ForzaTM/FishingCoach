@@ -1,4 +1,4 @@
--- ReelGold: API compatibility layer.
+-- Fishing Coach: API compatibility layer.
 -- WoW: Forever runs on the modern (12.x) client API, but every call is wrapped
 -- here so a single file needs touching when Blizzard renames something.
 local _, ns = ...

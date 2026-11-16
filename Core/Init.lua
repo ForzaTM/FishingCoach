@@ -1,4 +1,4 @@
--- ReelGold: bootstrap, saved variables, events and slash commands.
+-- Fishing Coach: bootstrap, saved variables, events and slash commands.
 local ADDON, ns = ...
 local U = ns.Util
 
@@ -67,7 +67,7 @@ local function VersionNotices()
     end
 end
 
--- Remembers the installed ReelGold version so the window can say "updated".
+-- Remembers the installed Fishing Coach version so the window can say "updated".
 local function TrackAddonVersion()
     local v = ns.version
     if not v or v == "dev" then return end
@@ -77,23 +77,23 @@ local function TrackAddonVersion()
 end
 
 ----------------------------------------------------------------------
--- Update notices for the window banner. ReelGold never goes online or
+-- Update notices for the window banner. Fishing Coach never goes online or
 -- sends messages, so it only reports what it can detect by itself:
---   "interface": WoW: Forever was patched after this ReelGold was made
---                (a ReelGold update is then likely: CurseForge / GitHub)
---   "updated":   ReelGold itself was updated since the last login
+--   "interface": WoW: Forever was patched after this Fishing Coach was made
+--                (a Fishing Coach update is then likely: CurseForge / GitHub)
+--   "updated":   Fishing Coach itself was updated since the last login
 ----------------------------------------------------------------------
 function ns.GetNotice()
     if not ns.db then return nil end
     local gv = ns.GameVersion
     local _, _, _, iface = GetBuildInfo()
     if iface and iface > gv.TESTED_INTERFACE and ns.db.dismissedInterface ~= iface then
-        return { key = "interface", text = ("WoW: Forever was updated (interface %d). This ReelGold (v%s) was made for %d, "
+        return { key = "interface", text = ("WoW: Forever was updated (interface %d). This Fishing Coach (v%s) was made for %d, "
             .. "so an update is probably out: check the CurseForge app or the Updates link in Settings.")
             :format(iface, ns.version, gv.TESTED_INTERFACE) }
     end
     if ns.db.updatedFrom then
-        return { key = "updated", text = ("ReelGold was updated: v%s -> v%s. What's new: see the changelog on CurseForge or GitHub.")
+        return { key = "updated", text = ("Fishing Coach was updated: v%s -> v%s. What's new: see the changelog on CurseForge or GitHub.")
             :format(ns.db.updatedFrom, ns.version) }
     end
 end
@@ -123,11 +123,11 @@ events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_LOGIN")
 events:SetScript("OnEvent", function(_, event, arg1)
     if event == "ADDON_LOADED" and arg1 == ADDON then
-        ReelGoldDB = U.CopyDefaults(DB_DEFAULTS, ReelGoldDB)
-        Migrate(ReelGoldDB)
-        ReelGoldCharDB = ReelGoldCharDB or {}
-        ReelGoldCharDB.session = ReelGoldCharDB.session or ns.Tracker.NewSession()
-        ns.db, ns.char = ReelGoldDB, ReelGoldCharDB
+        FishingCoachDB = U.CopyDefaults(DB_DEFAULTS, FishingCoachDB)
+        Migrate(FishingCoachDB)
+        FishingCoachCharDB = FishingCoachCharDB or {}
+        FishingCoachCharDB.session = FishingCoachCharDB.session or ns.Tracker.NewSession()
+        ns.db, ns.char = FishingCoachDB, FishingCoachCharDB
 
     elseif event == "ADDON_LOADED" then
         -- Auctionator loaded after us (or on demand): hook its scan callback.
@@ -182,9 +182,9 @@ end)
 ----------------------------------------------------------------------
 -- Slash commands
 ----------------------------------------------------------------------
-SLASH_REELGOLD1 = "/reelgold"
-SLASH_REELGOLD2 = "/rgold"
-SlashCmdList.REELGOLD = function(msg)
+SLASH_FISHINGCOACH1 = "/fishingcoach"
+SLASH_FISHINGCOACH2 = "/fcoach"
+SlashCmdList.FISHINGCOACH = function(msg)
     local cmd = strlower(strtrim(msg or ""))
     if cmd == "" or cmd == "show" then
         ns.UI.Toggle()
@@ -210,6 +210,6 @@ SlashCmdList.REELGOLD = function(msg)
         U.Print(("v%s, data v%d (%s), checked on client %s / interface %d")
             :format(ns.version, gv.DATA_VERSION, gv.DATA_DATE, gv.TESTED_CLIENT, gv.TESTED_INTERFACE))
     else
-        U.Print("Commands: /rgold [show | guide | session | best | spots | tips | settings | options | prices | hud | reset | minimap | version]")
+        U.Print("Commands: /fcoach [show | guide | session | best | spots | tips | settings | options | prices | hud | reset | minimap | version]")
     end
 end

@@ -1,4 +1,4 @@
--- ReelGold: game version metadata.
+-- Fishing Coach: game version metadata.
 -- When WoW: Forever gets a new patch, run tools/bump-interface (see README)
 -- which updates TESTED_INTERFACE here and the ## Interface line in the TOC.
 local _, ns = ...
@@ -13,5 +13,5 @@ ns.GameVersion = {
     DATA_VERSION = 1,
     DATA_DATE = "2026-11-16",
     -- Where players get updates (shown in Settings; addons can't open links).
-    UPDATE_URL = "https://github.com/ForzaTM/ReelGold/releases",
+    UPDATE_URL = "https://github.com/ForzaTM/FishingCoach/releases",
 }

@@ -1,5 +1,5 @@
--- ReelGold offline scenarios. Loaded by tests/run.js after wowmock.lua.
--- Each test runs against the real addon files listed in ReelGold.toc.
+-- Fishing Coach offline scenarios. Loaded by tests/run.js after wowmock.lua.
+-- Each test runs against the real addon files listed in FishingCoach.toc.
 
 local passed, failed, failures = 0, 0, {}
 local current
@@ -33,9 +33,9 @@ local ns = {}
 for _, path in ipairs(TOC_FILES) do
     local chunk, err = loadfile(path)
     if not chunk then error("Cannot load " .. path .. ": " .. tostring(err)) end
-    chunk("ReelGold", ns)
+    chunk("FishingCoach", ns)
 end
-Mock.Fire("ADDON_LOADED", "ReelGold")
+Mock.Fire("ADDON_LOADED", "FishingCoach")
 Mock.Fire("PLAYER_LOGIN")
 
 local T, P, R, U = ns.Tracker, ns.Pricing, ns.Recommend, ns.Util
@@ -53,15 +53,15 @@ local function FishFor(n, every, pattern, coinsEvery)
     end
 end
 
-REPORT("ReelGold offline tests (mock WoW API, " .. _VERSION .. ")\n")
+REPORT("Fishing Coach offline tests (mock WoW API, " .. _VERSION .. ")\n")
 
 test("addon loads, saved variables get defaults, slash command registered", function()
-    check(ReelGoldDB and ReelGoldCharDB, "saved variables created")
-    eq(ReelGoldDB.timeUnit, "hour", "default time unit")
-    eq(ReelGoldDB.idleTimeout, 300, "default idle timeout")
-    eq(ReelGoldDB.priceSource, "auto", "default price source")
-    check(type(SlashCmdList.REELGOLD) == "function", "slash handler")
-    eq(SLASH_REELGOLD1, "/reelgold")
+    check(FishingCoachDB and FishingCoachCharDB, "saved variables created")
+    eq(FishingCoachDB.timeUnit, "hour", "default time unit")
+    eq(FishingCoachDB.idleTimeout, 300, "default idle timeout")
+    eq(FishingCoachDB.priceSource, "auto", "default price source")
+    check(type(SlashCmdList.FISHINGCOACH) == "function", "slash handler")
+    eq(SLASH_FISHINGCOACH1, "/fishingcoach")
     eq(ns.version, "dev", "unpackaged version shows as dev")
 end)
 
@@ -125,10 +125,10 @@ end)
 test("rate per minute / hour / custom minutes are consistent", function()
     T.Reset()
     FishFor(40, 15, AZSHARA)
-    ReelGoldDB.timeUnit = "hour";   local h = T.Rate()
-    ReelGoldDB.timeUnit = "minute"; local m = T.Rate()
-    ReelGoldDB.timeUnit = "custom"; ReelGoldDB.customMinutes = 30; local c = T.Rate()
-    ReelGoldDB.timeUnit = "hour"
+    FishingCoachDB.timeUnit = "hour";   local h = T.Rate()
+    FishingCoachDB.timeUnit = "minute"; local m = T.Rate()
+    FishingCoachDB.timeUnit = "custom"; FishingCoachDB.customMinutes = 30; local c = T.Rate()
+    FishingCoachDB.timeUnit = "hour"
     check(h > 0, "hourly rate positive")
     near(h, m * 60, 1e-6, "hour = 60 x minute")
     near(c, h / 2, 1e-6, "30 min = half an hour")
@@ -141,9 +141,9 @@ test("Auctionator price is used when higher than vendor, minus 5% AH cut", funct
     end } } }
     local p, src = P.Get(13422)
     eq(src, "Auctionator"); eq(p, 6650, "7000 minus 5%")
-    ReelGoldDB.applyAHCut = false
+    FishingCoachDB.applyAHCut = false
     eq((P.Get(13422)), 7000, "without AH cut")
-    ReelGoldDB.applyAHCut = true
+    FishingCoachDB.applyAHCut = true
     local lp, lsrc = P.Get(13757)
     eq(lsrc, "Vendor", "AH below vendor falls back to vendor"); eq(lp, 8)
 end)
@@ -170,13 +170,13 @@ test("manual price overrides every other source", function()
 end)
 
 test("vendor-only setting ignores auction addons", function()
-    ReelGoldDB.priceSource = "vendor"
+    FishingCoachDB.priceSource = "vendor"
     eq(select(2, P.Get(13422)), "Vendor")
-    ReelGoldDB.priceSource = "auto"
+    FishingCoachDB.priceSource = "auto"
 end)
 
 test("spot ranking: seeds ranked by value, own zone data replaces the estimate", function()
-    wipe(ReelGoldDB.zoneStats)
+    wipe(FishingCoachDB.zoneStats)
     T.Reset()
     Mock.mapID = 1447
     FishFor(39, 15, AZSHARA)
@@ -188,7 +188,7 @@ test("spot ranking: seeds ranked by value, own zone data replaces the estimate",
     local az = find(list, "Azshara")
     eq(az.learned, true, "40 catches: uses your data")
     eq(az.catches, 40)
-    near(az.perHour, T.ItemsValue(ReelGoldDB.zoneStats[1447].items) / ReelGoldDB.zoneStats[1447].seconds * 3600, 1e-6, "per hour from own data")
+    near(az.perHour, T.ItemsValue(FishingCoachDB.zoneStats[1447].items) / FishingCoachDB.zoneStats[1447].seconds * 3600, 1e-6, "per hour from own data")
     for i = 2, #list do
         if list[i - 1].canFish == list[i].canFish then
             check(list[i - 1].perHour >= list[i].perHour, "sorted by gold per hour")
@@ -203,7 +203,7 @@ test("new Forever zone (not in seed data) gets ranked from your catches, micro m
     for _, e in ipairs(R.Rank()) do if e.zone == "Riverglades" then found = e end end
     check(found, "Riverglades listed")
     eq(found.learned, true)
-    eq(ReelGoldDB.zoneStats[99001].catches, 45, "stored under the zone map, not the micro map")
+    eq(FishingCoachDB.zoneStats[99001].catches, 45, "stored under the zone map, not the micro map")
     Mock.mapID = 1447
 end)
 
@@ -287,7 +287,7 @@ test("Auctionator scans update prices and every view automatically", function()
         GetAuctionPriceByItemID = function(_, id) return ahdb[id] end,
         GetAuctionAgeByItemID = function(_, id) return ahdb[id] and 0 or nil end,
         RegisterForDBUpdate = function(caller, cb)
-            eq(caller, "ReelGold", "caller ID"); callbacks[#callbacks + 1] = cb
+            eq(caller, "FishingCoach", "caller ID"); callbacks[#callbacks + 1] = cb
         end,
     } } }
     Mock.Fire("ADDON_LOADED", "Auctionator")
@@ -300,7 +300,7 @@ test("Auctionator scans update prices and every view automatically", function()
     ns.UI.Refresh = function(...) redraws = redraws + 1; return origRefresh(...) end
     eq((P.Get(13422)), 950, "old AH price (1000 - 5%)")
 
-    -- A scan finds a new price: ReelGold picks it up and redraws without any click.
+    -- A scan finds a new price: Fishing Coach picks it up and redraws without any click.
     ahdb[13422] = 9000
     wipe(Mock.printed)
     callbacks[1](); Mock.FlushTimers()
@@ -314,7 +314,7 @@ test("Auctionator scans update prices and every view automatically", function()
     msgs = 0
     for _, l in ipairs(Mock.printed) do if l:find("Prices updated") then msgs = msgs + 1 end end
     eq(msgs, 1, "no message spam for repeated scan callbacks in one AH visit")
-    check(ReelGoldMainFrame.priceStatus:GetText():find("^Auctionator %d+/%d+"), "status: " .. ReelGoldMainFrame.priceStatus:GetText())
+    check(FishingCoachMainFrame.priceStatus:GetText():find("^Auctionator %d+/%d+"), "status: " .. FishingCoachMainFrame.priceStatus:GetText())
 
     -- Fallback: closing the Auction House refreshes too (TSM users).
     Mock.Fire("AUCTION_HOUSE_CLOSED")
@@ -323,20 +323,20 @@ test("Auctionator scans update prices and every view automatically", function()
     callbacks[1](); Mock.FlushTimers()
     check(Mock.printed[1] and Mock.printed[1]:find("Prices updated from Auctionator"), "next AH visit announces again")
 
-    -- Manual button in the title bar and /rgold prices.
+    -- Manual button in the title bar and /fcoach prices.
     local btn
     for _, f in ipairs(Mock.frames) do
-        if f.__parent == ReelGoldMainFrame and f.__text == "Refresh prices" then btn = f end
+        if f.__parent == FishingCoachMainFrame and f.__text == "Refresh prices" then btn = f end
     end
     check(btn, "Refresh prices button exists")
     wipe(Mock.printed)
     btn.__scripts.OnClick(btn, "LeftButton"); Mock.FlushTimers()
     eq(P.lastReason, "manual")
     check(Mock.printed[1] and Mock.printed[1]:find("of %d+ fish have Auction House prices"), "coverage message: " .. tostring(Mock.printed[1]))
-    SlashCmdList.REELGOLD("prices")
+    SlashCmdList.FISHINGCOACH("prices")
     eq(P.lastReason, "manual")
     Mock.Advance(125)
-    check(ReelGoldMainFrame.priceStatus:GetText() and P.ShortStatus():find("2m ago"), "age shown: " .. P.ShortStatus())
+    check(FishingCoachMainFrame.priceStatus:GetText() and P.ShortStatus():find("2m ago"), "age shown: " .. P.ShortStatus())
 
     ns.UI.Refresh = origRefresh
     ahdb[13422] = 7000 -- back to the value the later tests expect
@@ -374,9 +374,9 @@ test("catch log shows the AH price exactly as Auctionator has it (real case from
     check(rows["Message in a Bottle"] and rows["Message in a Bottle"]:find("vendor"), "no AH data -> vendor")
 
     -- With the AH cut off, totals equal the AH price exactly.
-    ReelGoldDB.applyAHCut = false
+    FishingCoachDB.applyAHCut = false
     eq((P.Get(6358)), 194, "no cut: counted = AH price")
-    ReelGoldDB.applyAHCut = true
+    FishingCoachDB.applyAHCut = true
 
     -- After a new scan the log uses the new price at once.
     ahdb[6358] = 250
@@ -392,7 +392,7 @@ end)
 
 local function inMainWindow(f)
     local p = f.__parent
-    while p do if p == ReelGoldMainFrame then return true end p = p.__parent end
+    while p do if p == FishingCoachMainFrame then return true end p = p.__parent end
     return false
 end
 
@@ -400,7 +400,7 @@ test("AH cut toggle lives on the Settings tab and updates the values on screen",
     T.Reset()
     Mock.mapID = 1447
     FishFor(4, 15, { { {13422, 1} } }) -- 4 Stonescale Eels, AH price 7000c each (fake Auctionator)
-    ReelGoldDB.applyAHCut = true
+    FishingCoachDB.applyAHCut = true
     ns.UI.Toggle("session"); ns.UI.Refresh()
     for _, f in ipairs(Mock.frames) do
         check(not (f.label and f.label.__text == "Count 5% AH cut"), "no AH cut toggle on the Session tab any more")
@@ -426,21 +426,21 @@ test("AH cut toggle lives on the Settings tab and updates the values on screen",
     end
     check(cb, "toggle is on the Settings tab")
     cb:SetChecked(false); cb.__scripts.OnClick(cb, "LeftButton"); Mock.FlushTimers()
-    eq(ReelGoldDB.applyAHCut, false, "setting switched off")
+    eq(FishingCoachDB.applyAHCut, false, "setting switched off")
     each, total = eelRow()
     check(each:find("@ 70 |", 1, true), "price each unchanged: " .. each)
     eq(total, "2 80", "total at full AH price: 4 x 70s = 2g 80s")
     near(T.Rate(), rateOn / 0.95, rateOn * 0.001, "gold per hour rises by the cut")
-    ReelGoldDB.applyAHCut = true
+    FishingCoachDB.applyAHCut = true
     eq(select(2, eelRow()), "2 66", "total after cut again")
 end)
 
-test("update notice banner: WoW patched, ReelGold updated, dismiss, copyable link", function()
+test("update notice banner: WoW patched, Fishing Coach updated, dismiss, copyable link", function()
     ns.UI.Toggle("session"); ns.UI.Refresh()
-    local banner = ReelGoldMainFrame.banner
+    local banner = FishingCoachMainFrame.banner
     check(not banner:IsShown(), "no banner normally")
 
-    -- WoW: Forever patched to a newer interface than ReelGold was made for.
+    -- WoW: Forever patched to a newer interface than Fishing Coach was made for.
     Mock.interface = 16002
     ns.UI.Refresh()
     check(banner:IsShown(), "banner shown after a WoW patch")
@@ -455,7 +455,7 @@ test("update notice banner: WoW patched, ReelGold updated, dismiss, copyable lin
     banner.close.__scripts.OnClick(banner.close, "LeftButton")
     Mock.interface = nil
 
-    -- ReelGold itself updated between logins.
+    -- Fishing Coach itself updated between logins.
     local savedVersion = ns.version
     ns.version = "1.0.1"; Mock.Fire("PLAYER_LOGIN")
     ns.UI.Refresh()
@@ -491,7 +491,7 @@ test("Tips tab: gear you have (highlighted), on alts, missing now first, later l
         for _, a in ipairs(list) do if a.text:find(pattern) then return a end end
     end
     local savedPole = Mock.pole
-    wipe(ReelGoldDB.inventory)
+    wipe(FishingCoachDB.inventory)
 
     -- Alliance, skill 300, basic pole equipped, nothing in bags.
     Mock.playerName = "Forza"
@@ -524,7 +524,7 @@ test("Tips tab: gear you have (highlighted), on alts, missing now first, later l
     Mock.bags = { [279966] = 1, [6533] = 10, [19970] = 1 } -- Hut, Attractors, Arcanite pole (soulbound)
     Mock.pole = 6256
     Mock.Fire("PLAYER_LOGIN"); Mock.FlushTimers()
-    check(ReelGoldDB.inventory["Forzalt-TestRealm"].items[279966] == 1, "alt's gear remembered")
+    check(FishingCoachDB.inventory["Forzalt-TestRealm"].items[279966] == 1, "alt's gear remembered")
     Mock.playerName = "Forza"
     Mock.bags = { [6530] = 20, [279965] = 2 }
     t = advice()
@@ -537,7 +537,7 @@ test("Tips tab: gear you have (highlighted), on alts, missing now first, later l
 
     -- Horde, skill 120: things needing more skill are 'later'.
     Mock.skill, Mock.faction, Mock.pole, Mock.bags, Mock.equipped = { rank = 120, max = 150, mod = 0 }, "Horde", 6365, {}, {}
-    wipe(ReelGoldDB.inventory)
+    wipe(FishingCoachDB.inventory)
     t = advice()
     eq(find(t, "^Better pole: Nat Pagle's Extreme Angler FC%-5000 %(%+25, yours %+5%)").status, "missing")
     eq(find(t, "^At skill 300: Arcanite Fishing Pole").status, "later")
@@ -579,26 +579,26 @@ test("Tips tab: gear you have (highlighted), on alts, missing now first, later l
 end)
 
 test("How to use tab opens on the very first launch only", function()
-    ReelGoldDB.seenGuide = false
-    if ReelGoldMainFrame then ReelGoldMainFrame:Hide() end
+    FishingCoachDB.seenGuide = false
+    if FishingCoachMainFrame then FishingCoachMainFrame:Hide() end
     Mock.Fire("PLAYER_LOGIN"); Mock.FlushTimers()
-    check(ReelGoldMainFrame:IsShown(), "window opened by itself on first launch")
-    eq(ReelGoldDB.lastTab, "guide", "on the How to use tab")
-    eq(ReelGoldDB.seenGuide, true, "remembered")
+    check(FishingCoachMainFrame:IsShown(), "window opened by itself on first launch")
+    eq(FishingCoachDB.lastTab, "guide", "on the How to use tab")
+    eq(FishingCoachDB.seenGuide, true, "remembered")
     local startBtn
     for _, f in ipairs(Mock.frames) do if f.__text == "Start fishing" then startBtn = f end end
     check(startBtn, "Start fishing button")
     startBtn.__scripts.OnClick(startBtn, "LeftButton")
-    eq(ReelGoldDB.lastTab, "session", "Start fishing goes to the Session tab")
-    ReelGoldMainFrame:Hide()
+    eq(FishingCoachDB.lastTab, "session", "Start fishing goes to the Session tab")
+    FishingCoachMainFrame:Hide()
     Mock.Fire("PLAYER_LOGIN"); Mock.FlushTimers()
-    check(not ReelGoldMainFrame:IsShown(), "not opened again on the next login")
-    SlashCmdList.REELGOLD("guide")
-    eq(ReelGoldDB.lastTab, "guide", "/rgold guide opens it")
+    check(not FishingCoachMainFrame:IsShown(), "not opened again on the next login")
+    SlashCmdList.FISHINGCOACH("guide")
+    eq(FishingCoachDB.lastTab, "guide", "/fcoach guide opens it")
 end)
 
 test("HUD has a close button that hides it until shown again", function()
-    ReelGoldDB.hud.shown, ReelGoldDB.hud.onlyWithPole = true, true
+    FishingCoachDB.hud.shown, FishingCoachDB.hud.onlyWithPole = true, true
     Mock.pole = 6256
     ns.HUD.UpdateVisibility()
     local hud = ns.HUD.GetFrame()
@@ -610,16 +610,16 @@ test("HUD has a close button that hides it until shown again", function()
     check(close and close.__scripts.OnClick, "close button exists on the HUD")
     close.__scripts.OnClick(close, "LeftButton")
     check(not hud:IsShown(), "HUD hidden after clicking X")
-    eq(ReelGoldDB.hud.shown, false, "stays hidden (saved)")
+    eq(FishingCoachDB.hud.shown, false, "stays hidden (saved)")
     Mock.Fire("PLAYER_EQUIPMENT_CHANGED")
     check(not hud:IsShown(), "re-equipping the pole does not bring it back")
-    SlashCmdList.REELGOLD("hud")
-    check(hud:IsShown(), "/rgold hud shows it again")
+    SlashCmdList.FISHINGCOACH("hud")
+    check(hud:IsShown(), "/fcoach hud shows it again")
 end)
 
 test("'For me' tab: best fishable spots and the next spot worth unlocking", function()
-    local savedStats = ReelGoldDB.zoneStats
-    ReelGoldDB.zoneStats = {}
+    local savedStats = FishingCoachDB.zoneStats
+    FishingCoachDB.zoneStats = {}
     Mock.skill = { rank = 290, max = 300, mod = 0 }
     P.SetOverride(13422, 50000) -- make Stonescale Eel (Feralas 300 / Azshara 330) the best money
     local r = R.ForSkill(3)
@@ -652,19 +652,19 @@ test("'For me' tab: best fishable spots and the next spot worth unlocking", func
 
     Mock.skill = { rank = 300, max = 300, mod = 25 }
     P.SetOverride(13422, nil)
-    ReelGoldDB.zoneStats = savedStats
+    FishingCoachDB.zoneStats = savedStats
 end)
 
-test("ReelGold has a page in Options -> AddOns", function()
+test("Fishing Coach has a page in Options -> AddOns", function()
     eq(#Mock.settings.addonCategories, 1, "registered exactly once (PLAYER_LOGIN fired several times)")
     local cat = Mock.settings.addonCategories[1]
-    eq(cat.name, "ReelGold", "category name")
-    SlashCmdList.REELGOLD("options")
-    eq(Mock.settings.opened, cat:GetID(), "/rgold options opens the page")
+    eq(cat.name, "Fishing Coach", "category name")
+    SlashCmdList.FISHINGCOACH("options")
+    eq(Mock.settings.opened, cat:GetID(), "/fcoach options opens the page")
     check(SettingsPanel:IsShown(), "Options window shown")
     -- Every control on the page works and changes the shared settings.
     local panel = cat.frame
-    local before = ReelGoldDB.priceSource
+    local before = FishingCoachDB.priceSource
     for _, f in ipairs(Mock.frames) do
         local p = f.__parent
         while p and p ~= panel do p = p.__parent end
@@ -672,24 +672,24 @@ test("ReelGold has a page in Options -> AddOns", function()
             f.__scripts.OnClick(f, "LeftButton")
         end
     end
-    check(ReelGoldDB.priceSource ~= before, "price source button cycles the shared setting")
-    ReelGoldDB.priceSource = before
-    -- "Open ReelGold" closes Options and opens the main window.
+    check(FishingCoachDB.priceSource ~= before, "price source button cycles the shared setting")
+    FishingCoachDB.priceSource = before
+    -- "Open Fishing Coach" closes Options and opens the main window.
     for _, f in ipairs(Mock.frames) do
-        if f.__parent == panel and f.__text == "Open ReelGold" then f.__scripts.OnClick(f, "LeftButton") end
+        if f.__parent == panel and f.__text == "Open Fishing Coach" then f.__scripts.OnClick(f, "LeftButton") end
     end
     check(not SettingsPanel:IsShown(), "Options window closed")
-    check(ReelGoldMainFrame and ReelGoldMainFrame:IsShown(), "main window opened")
+    check(FishingCoachMainFrame and FishingCoachMainFrame:IsShown(), "main window opened")
 end)
 
 test("UI smoke test: every tab, button, tooltip and slash command runs", function()
     T.Reset()
     FishFor(30, 15, AZSHARA, 7)
     for _, cmd in ipairs({ "", "spots", "tips", "settings", "session", "hud", "hud", "version", "minimap", "minimap", "help" }) do
-        SlashCmdList.REELGOLD(cmd)
+        SlashCmdList.FISHINGCOACH(cmd)
         Mock.FlushTimers()
     end
-    check(ReelGoldMainFrame and ReelGoldMainFrame:IsShown(), "main window open")
+    check(FishingCoachMainFrame and FishingCoachMainFrame:IsShown(), "main window open")
     for _, tab in ipairs({ "session", "best", "spots", "tips", "settings", "guide" }) do
         ns.UI.Toggle(tab); ns.UI.Refresh()
     end
@@ -703,8 +703,8 @@ test("UI smoke test: every tab, button, tooltip and slash command runs", functio
     end
     Mock.FlushTimers()
     ns.UI.Toggle("session"); ns.UI.Refresh(); ns.HUD.Refresh()
-    ReelGold_OnAddonCompartmentEnter(nil, UIParent)
-    ReelGold_OnAddonCompartmentClick(nil, "LeftButton")
+    FishingCoach_OnAddonCompartmentEnter(nil, UIParent)
+    FishingCoach_OnAddonCompartmentClick(nil, "LeftButton")
     check(fired > 50, "fired " .. fired .. " UI scripts")
 end)
 
@@ -715,17 +715,17 @@ do
     local function plain(c, short)
         return (U.Money(c, short):gsub("|TInterface\\MoneyFrame\\UI%-(%a)%a+Icon[^|]*|t", function(x) return x:lower() end))
     end
-    ReelGoldDB.priceSource = "auto"
+    FishingCoachDB.priceSource = "auto"
     T.Reset()
     Mock.mapID, Mock.hour = 1447, 14
     FishFor(120, 15, AZSHARA, 6)
     REPORT("\nExample: 120 catches in Azshara, one every 15 s (mock prices)")
     REPORT(("  Active time  %s   Catches %d   Coins %s"):format(U.Duration(T.ActiveSeconds()), T.Session().catches, plain(T.Session().money)))
     for _, unit in ipairs({ "minute", "hour", "custom" }) do
-        ReelGoldDB.timeUnit = unit
+        FishingCoachDB.timeUnit = unit
         REPORT(("  %-12s %s"):format(T.UnitLabel(), plain(T.Rate(), true)))
     end
-    ReelGoldDB.timeUnit = "hour"
+    FishingCoachDB.timeUnit = "hour"
     local fm = R.ForSkill(3)
     REPORT(("  'For me' tab at effective skill %d:"):format(fm.skill))
     for i, e in ipairs(fm.best) do

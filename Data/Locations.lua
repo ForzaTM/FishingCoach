@@ -1,8 +1,8 @@
--- ReelGold: seed fishing spots.
+-- Fishing Coach: seed fishing spots.
 --
 -- These are starting ESTIMATES based on the vanilla fishing tables Forever is
 -- built on. As soon as you fish a zone long enough (Settings: "learn after N
--- catches"), ReelGold uses YOUR real catch data for that zone instead, and new
+-- catches"), Fishing Coach uses YOUR real catch data for that zone instead, and new
 -- Forever zones (Riverglades, Mount Hyjal, Zephras Isle, ...) are ranked from
 -- your own data automatically.
 --

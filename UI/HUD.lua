@@ -1,4 +1,4 @@
--- ReelGold: compact movable tracker (gold per time unit, active time, best catch).
+-- Fishing Coach: compact movable tracker (gold per time unit, active time, best catch).
 local _, ns = ...
 local W, U = ns.Widgets, ns.Util
 
@@ -46,7 +46,7 @@ local function Create()
     f.close:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("Hide HUD", 1, 1, 1)
-        GameTooltip:AddLine("Show it again with /rgold hud, a right-click on the minimap button, or in Settings.", nil, nil, nil, true)
+        GameTooltip:AddLine("Show it again with /fcoach hud, a right-click on the minimap button, or in Settings.", nil, nil, nil, true)
         GameTooltip:Show()
     end)
     f.close:SetScript("OnLeave", GameTooltip_Hide)
@@ -56,7 +56,7 @@ local function Create()
     end)
     f:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
-        GameTooltip:SetText("ReelGold", 1, 0.82, 0)
+        GameTooltip:SetText("Fishing Coach", 1, 0.82, 0)
         GameTooltip:AddLine("Drag to move, right-click to open.", 0.8, 0.8, 0.8)
         local tips = ns.Recommend.ContextTips()
         if #tips > 0 then GameTooltip:AddLine(" ") end
@@ -108,7 +108,7 @@ end
 function HUD.Close()
     ns.db.hud.shown = false
     HUD.UpdateVisibility()
-    U.Print("HUD hidden. Show it again with /rgold hud or a right-click on the minimap button.")
+    U.Print("HUD hidden. Show it again with /fcoach hud or a right-click on the minimap button.")
     if ns.UI then ns.UI.Refresh() end
 end
 

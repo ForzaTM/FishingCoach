@@ -1,4 +1,4 @@
--- ReelGold: fish and fishing loot database.
+-- Fishing Coach: fish and fishing loot database.
 -- Names and icons are NOT stored here: they are always read from the game
 -- client by item ID, so they show the real, localized item and icon.
 -- `use` is a short hint shown in tooltips.
@@ -41,10 +41,10 @@ ns.Fish = {
     [13926] = { use = "Golden Pearl - Jewelcrafting / Enchanting demand" },
 }
 
--- Icons used for UI decoration: the ReelGold logo (our own texture) plus real
+-- Icons used for UI decoration: the Fishing Coach logo (our own texture) plus real
 -- client textures for everything else.
 ns.Icons = {
-    logo      = "Interface\\AddOns\\ReelGold\\Media\\Icon",
+    logo      = "Interface\\AddOns\\FishingCoach\\Media\\Icon",
     fishing   = "Interface\\Icons\\Trade_Fishing",
     pole      = "Interface\\Icons\\INV_Fishingpole_02",
     coin      = "Interface\\Icons\\INV_Misc_Coin_01",

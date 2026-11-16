@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ReelGold release helper.
+"""Fishing Coach release helper.
 
   python tools/release.py bump --interface 16002 --client 1.60.2
       Point the addon at a new WoW: Forever client: updates the TOC
@@ -9,7 +9,7 @@
       Bump DATA_VERSION after editing Data/*.lua (users get a notice in game).
 
   python tools/release.py package --version 1.1.0
-      Build dist/ReelGold-1.1.0.zip ready for a manual CurseForge upload
+      Build dist/FishingCoach-1.1.0.zip ready for a manual CurseForge upload
       (the GitHub workflow does the same automatically on a "v*" tag).
 
 Then commit and tag:
@@ -23,7 +23,7 @@ import sys
 import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TOC = ROOT / "ReelGold.toc"
+TOC = ROOT / "FishingCoach.toc"
 GAMEVER = ROOT / "Data" / "GameVersion.lua"
 CHANGELOG = ROOT / "CHANGELOG.md"
 PACKAGE_IGNORE = {"README.md", "CHANGELOG.md", "CLAUDE.md", "docs", "tools", ".github", ".git", ".gitignore",
@@ -85,8 +85,8 @@ def cmd_data(a):
 def cmd_package(a):
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
-    out = dist / f"ReelGold-{a.version}.zip"
-    installer_out = dist / f"ReelGold-{a.version}-windows-installer.zip"
+    out = dist / f"FishingCoach-{a.version}.zip"
+    installer_out = dist / f"FishingCoach-{a.version}-windows-installer.zip"
     installer = ROOT / "tools" / "installer"
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z, \
             zipfile.ZipFile(installer_out, "w", zipfile.ZIP_DEFLATED) as zi:
@@ -96,7 +96,7 @@ def cmd_package(a):
             # .release left behind by the CurseForge packager on CI, ...).
             if f.is_dir() or rel.parts[0] in PACKAGE_IGNORE or rel.parts[0].startswith("."):
                 continue
-            arc = "ReelGold/" + rel.as_posix()
+            arc = "FishingCoach/" + rel.as_posix()
             if f.suffix in (".toc", ".lua"):
                 data = read(f).replace("@project-version@", a.version)
                 z.writestr(arc, data)
@@ -104,8 +104,8 @@ def cmd_package(a):
             else:
                 z.write(f, arc)
                 zi.write(f, arc)
-        # Windows installer bundle: launcher + script next to the ReelGold folder.
-        for name in ("Install-ReelGold.cmd", "install.ps1"):
+        # Windows installer bundle: launcher + script next to the Fishing Coach folder.
+        for name in ("Install-FishingCoach.cmd", "install.ps1"):
             zi.write(installer / name, name)
     print(out)
     print(installer_out)

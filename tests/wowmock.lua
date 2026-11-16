@@ -1,4 +1,4 @@
--- Minimal fake World of Warcraft API, just enough to run ReelGold outside
+-- Minimal fake World of Warcraft API, just enough to run Fishing Coach outside
 -- the game. Everything the tests control lives in the global `Mock` table.
 -- Runs on Fengari (Lua 5.3); WoW uses Lua 5.1, so stick to the common subset.
 

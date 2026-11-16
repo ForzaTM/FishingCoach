@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Finds World of Warcraft: Forever on this PC and installs (or updates /
-    removes) the ReelGold addon in <WoW>\_forever_\Interface\AddOns\ReelGold.
+    removes) the Fishing Coach addon in <WoW>\_forever_\Interface\AddOns\FishingCoach.
 
 .DESCRIPTION
     Where it looks, in this order:
@@ -10,7 +10,7 @@
       3. Common folders on every fixed drive (C:\World of Warcraft,
          C:\Program Files (x86)\World of Warcraft, D:\Games\World of Warcraft, ...)
       4. Optional deeper scan of all fixed drives (asks first, can take a while)
-    It never changes anything outside the ReelGold addon folder. Your settings
+    It never changes anything outside the Fishing Coach addon folder. Your settings
     and fishing history are stored in the WTF folder and are kept.
 
 .PARAMETER Path
@@ -19,7 +19,7 @@
 .PARAMETER Yes
     Do not ask questions: use the first Forever folder found (live before beta).
 .PARAMETER Uninstall
-    Remove ReelGold from the chosen Forever folder.
+    Remove Fishing Coach from the chosen Forever folder.
 .PARAMETER ListOnly
     Only print the Forever folders that were found.
 .PARAMETER DeepScan
@@ -41,7 +41,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$AddonName = 'ReelGold'
+$AddonName = 'FishingCoach'      # folder / TOC name
+$DisplayName = 'Fishing Coach'    # name shown to players
+$OldAddonName = 'ReelGold'        # the addon's previous name (migrated on install)
 $Flavors = [ordered]@{
     '_forever_'      = 'WoW: Forever'
     '_forever_beta_' = 'WoW: Forever (beta)'
@@ -57,7 +59,7 @@ function Write-Warn2($text) { Write-Host "  $text" -ForegroundColor DarkYellow }
 # Source files
 #---------------------------------------------------------------------
 function Get-AddonSource {
-    # Release bundle: .\ReelGold\ReelGold.toc next to this script.
+    # Release bundle: .\Fishing Coach\FishingCoach.toc next to this script.
     $bundle = Join-Path $PSScriptRoot $AddonName
     if (Test-Path (Join-Path $bundle "$AddonName.toc")) {
         return @{ Root = $bundle; Files = @(Get-ChildItem $bundle -Recurse -File | ForEach-Object { $_.FullName.Substring($bundle.Length + 1) }) }
@@ -65,7 +67,7 @@ function Get-AddonSource {
     # Repository: tools\installer\install.ps1 -> repo root. Copy only what the TOC loads.
     $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     $toc = Join-Path $repo "$AddonName.toc"
-    if (-not (Test-Path $toc)) { throw "Cannot find the $AddonName addon files next to the installer." }
+    if (-not (Test-Path $toc)) { throw "Cannot find the $DisplayName addon files next to the installer." }
     $files = @("$AddonName.toc")
     foreach ($line in Get-Content $toc) {
         $l = $line.Trim()
@@ -246,9 +248,9 @@ function Install-Addon($target, $source) {
         Write-Note "Created $($target.AddOnsDir)"
     }
     if (Test-Path $dest) {
-        # Only ever delete a folder that really is ReelGold.
+        # Only ever delete a folder that really is Fishing Coach.
         if (-not (Test-Path (Join-Path $dest "$AddonName.toc"))) {
-            throw "$dest exists but does not look like $AddonName. Nothing was changed."
+            throw "$dest exists but does not look like $DisplayName. Nothing was changed."
         }
         Remove-Item -LiteralPath $dest -Recurse -Force
     }
@@ -259,19 +261,47 @@ function Install-Addon($target, $source) {
         New-Item -ItemType Directory -Path (Split-Path $to -Parent) -Force | Out-Null
         Copy-Item -LiteralPath $from -Destination $to -Force
     }
-    Write-Ok "Installed $AddonName $(Get-TocVersion (Join-Path $dest "$AddonName.toc")) ($($source.Files.Count) files) into:"
+    Write-Ok "Installed $DisplayName $(Get-TocVersion (Join-Path $dest "$AddonName.toc")) ($($source.Files.Count) files) into:"
     Write-Ok $dest
 }
 
 function Uninstall-Addon($target) {
     $dest = Join-Path $target.AddOnsDir $AddonName
     if (-not (Test-Path (Join-Path $dest "$AddonName.toc"))) {
-        Write-Note "$AddonName is not installed in $($target.AddOnsDir)."
+        Write-Note "$DisplayName is not installed in $($target.AddOnsDir)."
         return
     }
     Remove-Item -LiteralPath $dest -Recurse -Force
     Write-Ok "Removed $dest"
-    Write-Note 'Your ReelGold settings and fishing history in the WTF folder were kept.'
+    Write-Note 'Your Fishing Coach settings and fishing history in the WTF folder were kept.'
+}
+
+#---------------------------------------------------------------------
+# Migration from the old addon name (ReelGold -> FishingCoach)
+#---------------------------------------------------------------------
+function Move-OldAddon($target) {
+    # 1. Remove the old addon folder, but only if it really is the old addon.
+    $old = Join-Path $target.AddOnsDir $OldAddonName
+    if (Test-Path (Join-Path $old "$OldAddonName.toc")) {
+        Remove-Item -LiteralPath $old -Recurse -Force
+        Write-Ok "Removed the old $OldAddonName folder ($DisplayName replaces it)."
+    }
+    # 2. Copy saved settings and fishing history to the new name, once.
+    $wtf = Join-Path $target.GameDir 'WTF\Account'
+    if (-not (Test-Path $wtf)) { return }
+    $moved = 0
+    Get-ChildItem $wtf -Recurse -File -Filter "$OldAddonName.lua" -ErrorAction SilentlyContinue |
+        Where-Object { $_.Directory.Name -eq 'SavedVariables' } |
+        ForEach-Object {
+            $dest = Join-Path $_.DirectoryName "$AddonName.lua"
+            if (-not (Test-Path $dest)) {
+                $text = [System.IO.File]::ReadAllText($_.FullName)
+                $text = $text -replace "\b${OldAddonName}CharDB\b", "${AddonName}CharDB" -replace "\b${OldAddonName}DB\b", "${AddonName}DB"
+                [System.IO.File]::WriteAllText($dest, $text)
+                $moved++
+            }
+        }
+    if ($moved -gt 0) { Write-Ok "Kept your settings and fishing history ($moved saved file(s) carried over from $OldAddonName)." }
 }
 
 function Confirm-Step([string]$question) {
@@ -284,8 +314,8 @@ function Confirm-Step([string]$question) {
 # Main
 #---------------------------------------------------------------------
 Write-Host ''
-Write-Host "  Reel" -NoNewline -ForegroundColor Cyan
-Write-Host "Gold" -NoNewline -ForegroundColor Yellow
+Write-Host "  Fishing " -NoNewline -ForegroundColor Cyan
+Write-Host "Coach" -NoNewline -ForegroundColor Yellow
 Write-Host " installer for World of Warcraft: Forever"
 
 $source = Get-AddonSource
@@ -330,7 +360,7 @@ $targets = @($targets | Sort-Object { if ($_.Flavor -and $order.ContainsKey($_.F
 Write-Title 'Found:'
 for ($i = 0; $i -lt $targets.Count; $i++) {
     $t = $targets[$i]
-    $state = if ($t.Installed) { "ReelGold $($t.Installed) installed" } else { 'ReelGold not installed' }
+    $state = if ($t.Installed) { "Fishing Coach $($t.Installed) installed" } else { 'Fishing Coach not installed' }
     Write-Host ("  [{0}] {1,-22} {2}" -f ($i + 1), $t.Name, $t.AddOnsDir)
     Write-Note ("      $state")
 }
@@ -350,20 +380,21 @@ if ($targets.Count -gt 1 -and -not $Yes) {
 
 Write-Host ''
 if ($Uninstall) {
-    if (Confirm-Step "Remove ReelGold from $($choice.AddOnsDir)?") { Uninstall-Addon $choice } else { Write-Note 'Nothing changed.' }
+    if (Confirm-Step "Remove Fishing Coach from $($choice.AddOnsDir)?") { Uninstall-Addon $choice } else { Write-Note 'Nothing changed.' }
     exit 0
 }
 
-$verb = if ($choice.Installed) { "Update ReelGold $($choice.Installed) -> $newVersion in" } else { "Install ReelGold $newVersion into" }
+$verb = if ($choice.Installed) { "Update Fishing Coach $($choice.Installed) -> $newVersion in" } else { "Install Fishing Coach $newVersion into" }
 if (-not (Confirm-Step "$verb $($choice.AddOnsDir)?")) { Write-Note 'Nothing changed.'; exit 0 }
 Install-Addon $choice $source
+Move-OldAddon $choice
 
 Write-Title 'Next steps'
 $running = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match '^Wow' }
 if ($running) {
     Write-Note 'WoW is running: type /reload in game (a new addon may need a full restart).'
 } else {
-    Write-Note 'Start WoW: Forever. On the character screen, open AddOns and make sure ReelGold is enabled.'
+    Write-Note 'Start WoW: Forever. On the character screen, open AddOns and make sure Fishing Coach is enabled.'
 }
-Write-Note 'In game, type /rgold to open ReelGold.'
+Write-Note 'In game, type /fcoach to open Fishing Coach.'
 exit 0

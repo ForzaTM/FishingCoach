@@ -1,4 +1,4 @@
--- ReelGold: fishing session tracker.
+-- Fishing Coach: fishing session tracker.
 -- Listens to fishing loot only (IsFishingLoot) and measures ACTIVE fishing
 -- time: the gap between two catches counts only while it is shorter than the
 -- idle timeout, so AFK breaks and travel do not ruin your gold/hour.

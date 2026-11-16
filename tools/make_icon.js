@@ -23,7 +23,7 @@ const browsers = [
 const browser = browsers.find((b) => fs.existsSync(b));
 if (!browser) throw new Error("Edge or Chrome not found");
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "reelgold-icon-"));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fishingcoach-icon-"));
 const html = path.join(tmp, "icon.html");
 fs.writeFileSync(html, `<!doctype html><html><head><style>html,body{margin:0;background:transparent;overflow:hidden}</style></head>
 <body>${fs.readFileSync(svg, "utf8")}</body></html>`);

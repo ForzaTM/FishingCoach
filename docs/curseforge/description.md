@@ -1,7 +1,7 @@
-# ReelGold
+# Fishing Coach
 
 **How much gold does your fishing really make, and where should you fish next?**
-ReelGold tracks your fishing income per minute, per hour or per any number of
+Fishing Coach tracks your fishing income per minute, per hour or per any number of
 minutes you choose, ranks the most profitable fishing spots for your skill, and
 gives you fishing tips that fit the moment. Made for **World of Warcraft: Forever**.
 
@@ -40,26 +40,26 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - Compact HUD you can drag anywhere, with a close button. It shows only while a fishing pole is equipped (optional).
 - Minimap button and Addon Compartment entry.
 - Every icon and item name comes straight from the game client, in your language.
-- Tells you when WoW: Forever was patched so you know to grab a ReelGold update (and what changed after updating).
+- Tells you when WoW: Forever was patched so you know to grab a Fishing Coach update (and what changed after updating).
 
 ### Easy to start
-- A short **How to use** guide opens the first time you launch ReelGold (and any time with `/rgold guide`).
+- A short **How to use** guide opens the first time you launch Fishing Coach (and any time with `/fcoach guide`).
 
 ## Commands
-`/rgold` (or `/reelgold`) opens the window. Add one of:
+`/fcoach` (or `/fishingcoach`) opens the window. Add one of:
 - `best`, `spots`, `tips`, `settings`, `session` or `guide` to open that tab
 - `hud` to show or hide the HUD
 - `reset` to start a new session
 - `minimap` to show or hide the minimap button
-- `options` to open the ReelGold page in Options -> AddOns
+- `options` to open the Fishing Coach page in Options -> AddOns
 - `prices` to refresh prices now
 - `version` to show the addon and data version
 
-## What ReelGold does not do
-ReelGold **only reads and displays** information: your fishing loot, your skill
+## What Fishing Coach does not do
+Fishing Coach **only reads and displays** information: your fishing loot, your skill
 and gear, and prices from other addons. It does **not** cast, loot, click, rebind
 keys, scan or post on the Auction House, send chat or addon messages, or connect
-anywhere. Fishing stays 100% manual, as Blizzard's rules require. ReelGold is
+anywhere. Fishing stays 100% manual, as Blizzard's rules require. Fishing Coach is
 free and its code is open on GitHub.
 
 ## Good to know
@@ -68,9 +68,9 @@ free and its code is open on GitHub.
 
 ## Install
 - **CurseForge app:** click Install.
-- **Manually:** unzip into `World of Warcraft\_forever_\Interface\AddOns\`, so you end up with `AddOns\ReelGold\ReelGold.toc`.
+- **Manually:** unzip into `World of Warcraft\_forever_\Interface\AddOns\`, so you end up with `AddOns\FishingCoach\FishingCoach.toc`.
 - **Windows installer:** download it from the GitHub releases page. It finds your WoW: Forever folder for you.
 
 ## Feedback and bugs
-Please report bugs and ideas on GitHub: https://github.com/ForzaTM/ReelGold/issues
-If something looks wrong, include the output of `/rgold version`.
+Please report bugs and ideas on GitHub: https://github.com/ForzaTM/FishingCoach/issues
+If something looks wrong, include the output of `/fcoach version`.

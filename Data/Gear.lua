@@ -1,4 +1,4 @@
--- ReelGold: fishing gear that makes fishing more efficient, and where to get it.
+-- Fishing Coach: fishing gear that makes fishing more efficient, and where to get it.
 -- Item IDs verified (classic items against Wowhead Classic; Forever camping
 -- items from warcraft.wiki.gg). Names here are English fallbacks only: the
 -- addon shows the client's real, localized name and icon.

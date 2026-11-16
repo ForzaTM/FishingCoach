@@ -1,4 +1,4 @@
--- ReelGold: minimap button (no libraries) + Addon Compartment entry.
+-- Fishing Coach: minimap button (no libraries) + Addon Compartment entry.
 local _, ns = ...
 
 local MM = {}
@@ -14,7 +14,7 @@ end
 
 local function ShowTooltip(owner)
     GameTooltip:SetOwner(owner, "ANCHOR_LEFT")
-    GameTooltip:SetText("Reel|cffffd100Gold|r")
+    GameTooltip:SetText("Fishing |cffffd100Coach|r")
     local T = ns.Tracker
     GameTooltip:AddDoubleLine("Gold " .. T.UnitLabel(), ns.Util.Money(T.Rate(), true), 1, 0.82, 0, 1, 1, 1)
     GameTooltip:AddDoubleLine("Session value", ns.Util.Money(T.TotalValue(), true), 1, 0.82, 0, 1, 1, 1)
@@ -28,7 +28,7 @@ local function ShowTooltip(owner)
 end
 
 local function Create()
-    btn = CreateFrame("Button", "ReelGoldMinimapButton", Minimap)
+    btn = CreateFrame("Button", "FishingCoachMinimapButton", Minimap)
     btn:SetSize(31, 31)
     btn:SetFrameStrata("MEDIUM")
     btn:SetFrameLevel(8)
@@ -77,12 +77,12 @@ function MM.Update()
 end
 
 -- Addon Compartment (the addon list button on the minimap), declared in the TOC.
-function ReelGold_OnAddonCompartmentClick(_, button)
+function FishingCoach_OnAddonCompartmentClick(_, button)
     if button == "RightButton" then ns.HUD.Toggle() else ns.UI.Toggle() end
 end
-function ReelGold_OnAddonCompartmentEnter(_, menuButtonFrame)
+function FishingCoach_OnAddonCompartmentEnter(_, menuButtonFrame)
     ShowTooltip(menuButtonFrame)
 end
-function ReelGold_OnAddonCompartmentLeave()
+function FishingCoach_OnAddonCompartmentLeave()
     GameTooltip:Hide()
 end

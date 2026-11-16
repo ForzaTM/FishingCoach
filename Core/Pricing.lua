@@ -1,4 +1,4 @@
--- ReelGold: item pricing.
+-- Fishing Coach: item pricing.
 -- Order: manual override > Auctionator / TSM (if installed) > vendor price.
 -- Only public price APIs of those addons are read; nothing touches the AH.
 local ADDON, ns = ...
@@ -50,7 +50,7 @@ end
 -- Full price picture for one item (all copper, per unit):
 --   market = the price as you see it (AH price exactly as Auctionator/TSM
 --            report it, or the vendor / manual price)
---   value  = what ReelGold counts: market minus the 5% AH cut when enabled
+--   value  = what Fishing Coach counts: market minus the 5% AH cut when enabled
 --   cut    = copper removed by the AH cut (0 if none)
 --   source = "Auctionator", "TSM", "Vendor" or "Manual"
 --   vendor = vendor sell price, ah = raw AH price or nil
@@ -129,7 +129,7 @@ function Pricing.Coverage()
     return n, total
 end
 
--- Re-reads all prices and redraws every ReelGold view.
+-- Re-reads all prices and redraws every Fishing Coach view.
 -- reason: "scan" (Auctionator finished processing), "ah" (AH closed),
 -- "manual" (button / slash), "login".
 function Pricing.Refresh(reason)

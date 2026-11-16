@@ -1,4 +1,4 @@
--- ReelGold: main window (Session / Spots / Tips / Settings).
+-- Fishing Coach: main window (Session / Spots / Tips / Settings).
 local ADDON, ns = ...
 local W, U = ns.Widgets, ns.Util
 
@@ -99,7 +99,7 @@ local function BuildSession(p)
     p.pager:Anchor("TOPRIGHT", p, "TOPRIGHT", -14, -206)
 
     local reset = W.Button(p, "Reset session", 110, 22, function()
-        StaticPopup_Show("REELGOLD_RESET")
+        StaticPopup_Show("FISHINGCOACH_RESET")
     end)
     reset:SetPoint("BOTTOMLEFT", 14, 12)
     local hud = W.Button(p, "Toggle HUD", 100, 22, function() ns.HUD.Toggle() end)
@@ -651,7 +651,7 @@ local function BuildSettings(p)
     end)
     p.updateUrl:SetScript("OnLeave", GameTooltip_Hide)
 
-    local wipe = W.Button(p, "Forget zone data", 130, 22, function() StaticPopup_Show("REELGOLD_WIPE_ZONES") end)
+    local wipe = W.Button(p, "Forget zone data", 130, 22, function() StaticPopup_Show("FISHINGCOACH_WIPE_ZONES") end)
     wipe:SetPoint("BOTTOMLEFT", 14, 12)
     p.version = W.Text(p, "GameFontDisableSmall")
     p.version:SetPoint("BOTTOMRIGHT", -14, 18)
@@ -683,18 +683,18 @@ local GUIDE = {
     { icon = ns.Icons.book, title = "Tips",
       text = "Fishing gear you're missing and where to get it (|cff33ff33green|r = you have it, |cff66ccffblue|r = on another character), plus tips for right now." },
     { icon = ns.Icons.lure, title = "Prices",
-      text = "Install Auctionator (or TSM) and scan the Auction House: ReelGold updates by itself. Refresh prices re-reads them. The 5% AH cut is in Settings." },
+      text = "Install Auctionator (or TSM) and scan the Auction House: Fishing Coach updates by itself. Refresh prices re-reads them. The 5% AH cut is in Settings." },
     { icon = ns.Icons.logo, title = "HUD and minimap",
-      text = "The small HUD shows your gold per hour while you hold a fishing pole (X hides it). Minimap button: left-click opens ReelGold, right-click shows or hides the HUD." },
+      text = "The small HUD shows your gold per hour while you hold a fishing pole (X hides it). Minimap button: left-click opens Fishing Coach, right-click shows or hides the HUD." },
     { icon = ns.Icons.gear, title = "Commands",
-      text = "/rgold opens ReelGold. Also /rgold best, spots, tips, prices, hud, options and guide (this page)." },
+      text = "/fcoach opens Fishing Coach. Also /fcoach best, spots, tips, prices, hud, options and guide (this page)." },
     { icon = ns.Icons.fishing, title = "Safe to use",
-      text = "ReelGold only reads and displays. It never casts, loots, clicks or sends messages: fishing stays manual, as Blizzard's rules require." },
+      text = "Fishing Coach only reads and displays. It never casts, loots, clicks or sends messages: fishing stays manual, as Blizzard's rules require." },
 }
 
 local function BuildGuide(p)
-    p.header = W.Text(p, "GameFontNormal", U.Icon(ns.Icons.logo) .. " How to use ReelGold"
-        .. "   |cff999999(open again any time: /rgold guide)|r")
+    p.header = W.Text(p, "GameFontNormal", U.Icon(ns.Icons.logo) .. " How to use Fishing Coach"
+        .. "   |cff999999(open again any time: /fcoach guide)|r")
     p.header:SetPoint("TOPLEFT", 14, -12)
     for i, g in ipairs(GUIDE) do
         local icon = p:CreateTexture(nil, "ARTWORK")
@@ -754,14 +754,14 @@ local function Create()
     end)
     local pt = ns.db.main.point
     if pt then frame:SetPoint(pt[1], UIParent, pt[2], pt[3], pt[4]) else frame:SetPoint("CENTER") end
-    tinsert(UISpecialFrames, "ReelGoldMainFrame")
-    _G.ReelGoldMainFrame = frame
+    tinsert(UISpecialFrames, "FishingCoachMainFrame")
+    _G.FishingCoachMainFrame = frame
 
     local logo = frame:CreateTexture(nil, "ARTWORK")
     logo:SetSize(28, 28)
     logo:SetPoint("TOPLEFT", 9, -7)
     logo:SetTexture(ns.Icons.logo)
-    local title = W.Text(frame, "GameFontNormalLarge", "Reel|cffffd100Gold|r")
+    local title = W.Text(frame, "GameFontNormalLarge", "Fishing |cffffd100Coach|r")
     title:SetPoint("LEFT", logo, "RIGHT", 8, 0)
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", -2, -2)
@@ -777,7 +777,7 @@ local function Create()
         GameTooltip:SetText("Refresh prices", 1, 1, 1)
         GameTooltip:AddLine("Re-reads prices from Auctionator / TSM and updates every tab.", nil, nil, nil, true)
         GameTooltip:AddLine(ns.Pricing.IsHooked()
-            and "|cff33ff33Automatic:|r ReelGold also updates by itself after every Auctionator scan."
+            and "|cff33ff33Automatic:|r Fishing Coach also updates by itself after every Auctionator scan."
             or "Prices also update when you close the Auction House.", nil, nil, nil, true)
         GameTooltip:AddLine("No AH prices yet? Open the Auction House and run an Auctionator scan.", 0.7, 0.7, 0.7, true)
         GameTooltip:Show()
@@ -850,7 +850,7 @@ function UI.Refresh()
     local notice = ns.GetNotice and ns.GetNotice()
     frame.banner.key = notice and notice.key
     if notice then
-        frame.banner.text:SetText("|cffffd100ReelGold:|r " .. notice.text)
+        frame.banner.text:SetText("|cffffd100Fishing Coach:|r " .. notice.text)
         frame.banner:Show()
     else
         frame.banner:Hide()
@@ -874,13 +874,13 @@ function UI.Toggle(tab)
     end
 end
 
-StaticPopupDialogs["REELGOLD_RESET"] = {
-    text = "Reset the current ReelGold fishing session?",
+StaticPopupDialogs["FISHINGCOACH_RESET"] = {
+    text = "Reset the current Fishing Coach fishing session?",
     button1 = YES, button2 = NO,
     OnAccept = function() ns.Tracker.Reset() end,
     timeout = 0, whileDead = true, hideOnEscape = true,
 }
-StaticPopupDialogs["REELGOLD_WIPE_ZONES"] = {
+StaticPopupDialogs["FISHINGCOACH_WIPE_ZONES"] = {
     text = "Forget all learned zone statistics? Spot ranking will go back to estimates.",
     button1 = YES, button2 = NO,
     OnAccept = function() wipe(ns.db.zoneStats); ns:FireRefresh() end,

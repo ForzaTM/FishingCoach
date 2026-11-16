@@ -1,7 +1,7 @@
 {
-  "name": "reelgold-dev",
+  "name": "fishingcoach-dev",
   "private": true,
-  "description": "Offline test harness for the ReelGold WoW addon (runs the addon Lua against a mocked WoW API).",
+  "description": "Offline test harness for the Fishing Coach WoW addon (runs the addon Lua against a mocked WoW API).",
   "scripts": {
     "test": "node tests/run.js",
     "test:installer": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/installer.tests.ps1",

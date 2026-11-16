@@ -1,4 +1,4 @@
-# ReelGold — fishing gold tracker for WoW: Forever
+# Fishing Coach — fishing gold tracker for WoW: Forever
 
 Tracks how much gold your fishing makes per minute, per hour or per a custom
 number of minutes, ranks the most profitable fishing spots for your skill, and
@@ -6,11 +6,11 @@ shows fishing tips that fit the moment. Item names and icons always come
 from the game client, so you see the real items.
 
 ## Installing (Windows)
-Double-click `Install-ReelGold.cmd` (from the `...-windows-installer.zip`
+Double-click `Install-FishingCoach.cmd` (from the `...-windows-installer.zip`
 release, or in `tools/installer/` in this repository). It looks for
 WoW: Forever in the Windows registry, the Battle.net app's install list and the
 usual folders on every drive, shows what it found, and asks before installing
-into `World of Warcraft\_forever_\Interface\AddOns\ReelGold`. Running it again
+into `World of Warcraft\_forever_\Interface\AddOns\FishingCoach`. Running it again
 updates the addon. Your settings and fishing history live in the `WTF` folder
 and are never touched.
 
@@ -20,13 +20,13 @@ Options (also work on the `.cmd`):
 |---|---|
 | `-ListOnly` | Only show the Forever folders found |
 | `-Path "D:\Games\World of Warcraft"` | Use this folder instead of searching |
-| `-Uninstall` | Remove ReelGold |
+| `-Uninstall` | Remove Fishing Coach |
 | `-DeepScan` | Search all fixed drives if it isn't found in the usual places |
 | `-Yes` | No questions: use the first folder found (live before beta) |
 
-Manual install: copy the `ReelGold` folder into
+Manual install: copy the `Fishing Coach` folder into
 `World of Warcraft\_forever_\Interface\AddOns\`, so the path ends in
-`AddOns\ReelGold\ReelGold.toc`. With the CurseForge app, just install it from there.
+`AddOns\FishingCoach\FishingCoach.toc`. With the CurseForge app, just install it from there.
 
 ## Features
 - **Session**: gold per time unit (counting active fishing time only), catches,
@@ -40,11 +40,11 @@ Manual install: copy the `ReelGold` folder into
   price otherwise, 5% AH cut option, and manual per-item prices (drag an item in).
 - Compact HUD, minimap button, Addon Compartment entry.
 
-Commands: `/rgold` or `/reelgold` with `show`, `session`, `spots`, `tips`,
+Commands: `/fcoach` or `/fishingcoach` with `show`, `session`, `spots`, `tips`,
 `settings`, `hud`, `reset`, `minimap` or `version`.
 
 ## Blizzard policy
-ReelGold only reads information (loot window, prices from other addons, your
+Fishing Coach only reads information (loot window, prices from other addons, your
 skill and equipment) and displays it. It does not cast, loot, click, move, or
 automate anything, does not scan or post on the Auction House, and does not
 send data anywhere. It follows the UI Add-On Development Policy and is free.
@@ -91,16 +91,16 @@ All game knowledge lives in `Data/` and every client API call goes through
 
 ## Publishing on CurseForge
 - Automatic: create the CurseForge project, add `## X-Curse-Project-ID: <id>`
-  to `ReelGold.toc`, add a `CF_API_KEY` secret to the GitHub repository. Every
+  to `FishingCoach.toc`, add a `CF_API_KEY` secret to the GitHub repository. Every
   `v*` tag then builds and uploads through `.github/workflows/release.yml`.
 - Manual: `python tools/release.py package --version 1.0.0` and upload
-  `dist/ReelGold-1.0.0.zip`. It also builds
-  `dist/ReelGold-1.0.0-windows-installer.zip` for a GitHub release; don't
+  `dist/FishingCoach-1.0.0.zip`. It also builds
+  `dist/FishingCoach-1.0.0-windows-installer.zip` for a GitHub release; don't
   upload that one to CurseForge, whose zips must contain only the addon folder.
 
 ## Layout
 ```
-ReelGold.toc          Addon manifest (interface version lives here)
+FishingCoach.toc          Addon manifest (interface version lives here)
 Data/                 Game data: version info, fish, spots, tips
 Core/Compat.lua       Every WoW API call (one place to fix after patches)
 Core/Pricing.lua      Auctionator / TSM / vendor / manual prices
@@ -109,6 +109,6 @@ Core/Recommend.lua    Spot ranking and context tips
 Core/Init.lua         Saved variables, migrations, events, slash commands
 UI/                   Main window, HUD, minimap button
 tools/release.py      bump / data / package helper
-tools/installer/      Windows installer (Install-ReelGold.cmd + install.ps1)
+tools/installer/      Windows installer (Install-FishingCoach.cmd + install.ps1)
 tests/                Offline tests with a mocked WoW API (npm test)
 ```

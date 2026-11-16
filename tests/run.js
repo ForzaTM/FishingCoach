@@ -1,4 +1,4 @@
-// Runs ReelGold's Lua files outside the game with Fengari and a mocked WoW API.
+// Runs Fishing Coach's Lua files outside the game with Fengari and a mocked WoW API.
 //   npm install   (once)
 //   npm test
 const fs = require("fs");
@@ -8,7 +8,7 @@ const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require("fengari");
 const root = path.resolve(__dirname, "..");
 process.chdir(root);
 
-const toc = fs.readFileSync("ReelGold.toc", "utf8")
+const toc = fs.readFileSync("FishingCoach.toc", "utf8")
   .split(/\r?\n/)
   .map((l) => l.trim())
   .filter((l) => l && !l.startsWith("#"))
@@ -17,9 +17,9 @@ const toc = fs.readFileSync("ReelGold.toc", "utf8")
 // Every texture the addon points at inside its own folder must exist
 // (WoW silently shows a green square for a missing texture).
 {
-  const sources = ["ReelGold.toc", ...toc].map((f) => fs.readFileSync(f, "utf8")).join("\n");
+  const sources = ["FishingCoach.toc", ...toc].map((f) => fs.readFileSync(f, "utf8")).join("\n");
   const refs = new Set();
-  for (const m of sources.matchAll(/Interface(?:\\\\|\\)AddOns(?:\\\\|\\)ReelGold(?:\\\\|\\)([A-Za-z0-9_\\]+)/g)) {
+  for (const m of sources.matchAll(/Interface(?:\\\\|\\)AddOns(?:\\\\|\\)FishingCoach(?:\\\\|\\)([A-Za-z0-9_\\]+)/g)) {
     refs.add(m[1].replace(/\\+/g, "/"));
   }
   const missing = [...refs].filter((r) => ![".tga", ".blp", ".png"].some((ext) => fs.existsSync(r + ext)));
@@ -30,7 +30,7 @@ const toc = fs.readFileSync("ReelGold.toc", "utf8")
   }
 }
 
-// Policy guard: ReelGold only reads and displays. It must never send chat or
+// Policy guard: Fishing Coach only reads and displays. It must never send chat or
 // addon messages, cast, use items/actions, change key bindings or touch the AH.
 {
   const forbidden = new RegExp("\\b(" + [

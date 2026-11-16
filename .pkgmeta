@@ -1,6 +1,6 @@
 # CurseForge / BigWigs packager config.
 # The packager replaces @project-version@ in the TOC with the git tag.
-package-as: ReelGold
+package-as: FishingCoach
 
 ignore:
   - README.md

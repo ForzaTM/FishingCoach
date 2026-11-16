@@ -41,7 +41,7 @@
     <path d="M205 145 V 232"/>
   </g>
 
-  <text x="200" y="368" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="56" font-weight="bold" stroke="#081a21" stroke-width="6" paint-order="stroke">
-    <tspan fill="#ffffff">Reel</tspan><tspan fill="#f2c94c">Gold</tspan>
+  <text x="200" y="366" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="44" font-weight="bold" stroke="#081a21" stroke-width="6" paint-order="stroke">
+    <tspan fill="#ffffff">Fishing </tspan><tspan fill="#f2c94c">Coach</tspan>
   </text>
 </svg>

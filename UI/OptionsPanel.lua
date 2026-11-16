@@ -1,4 +1,4 @@
--- ReelGold: page in Blizzard's Options -> AddOns (Settings API canvas page).
+-- Fishing Coach: page in Blizzard's Options -> AddOns (Settings API canvas page).
 -- Shows the most used settings and a button that opens the full window.
 local _, ns = ...
 local W, U = ns.Widgets, ns.Util
@@ -10,20 +10,20 @@ local panel, category
 
 local function Build()
     panel = CreateFrame("Frame")
-    panel.name = "ReelGold" -- used by the legacy InterfaceOptions fallback
+    panel.name = "Fishing Coach" -- used by the legacy InterfaceOptions fallback
 
     local logo = panel:CreateTexture(nil, "ARTWORK")
     logo:SetSize(40, 40)
     logo:SetPoint("TOPLEFT", 14, -14)
     logo:SetTexture(ns.Icons.logo)
 
-    local title = W.Text(panel, "GameFontNormalHuge", "Reel|cffffd100Gold|r")
+    local title = W.Text(panel, "GameFontNormalHuge", "Fishing |cffffd100Coach|r")
     title:SetPoint("TOPLEFT", logo, "TOPRIGHT", 10, -2)
     local sub = W.Text(panel, "GameFontHighlightSmall",
         "Fishing gold per time, best profitable spots and tips for WoW: Forever.")
     sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
 
-    local open = W.Button(panel, "Open ReelGold", 140, 24, function()
+    local open = W.Button(panel, "Open Fishing Coach", 140, 24, function()
         if SettingsPanel and SettingsPanel:IsShown() and HideUIPanel then HideUIPanel(SettingsPanel) end
         ns.UI.Toggle("session")
     end)
@@ -93,7 +93,7 @@ local function Build()
         function(v) ns.db.minimap.hide = not v; ns.Minimap.Update() end)
 
     local more = W.Text(panel, "GameFontDisableSmall",
-        "More settings (TSM price source, manual item prices, learning) are on the Settings tab of the ReelGold window.  Commands: /rgold")
+        "More settings (TSM price source, manual item prices, learning) are on the Settings tab of the Fishing Coach window.  Commands: /fcoach")
     more:SetPoint("TOPLEFT", 18, y - 10)
     more:SetPoint("RIGHT", -18, 0)
 
@@ -117,14 +117,14 @@ function Options.Register()
     if panel then return end
     Build()
     if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
-        category = Settings.RegisterCanvasLayoutCategory(panel, "ReelGold")
+        category = Settings.RegisterCanvasLayoutCategory(panel, "Fishing Coach")
         Settings.RegisterAddOnCategory(category)
     elseif InterfaceOptions_AddCategory then
         InterfaceOptions_AddCategory(panel)
     end
 end
 
--- Opens Options -> AddOns -> ReelGold.
+-- Opens Options -> AddOns -> Fishing Coach.
 function Options.Open()
     if category and Settings and Settings.OpenToCategory then
         Settings.OpenToCategory(category:GetID())

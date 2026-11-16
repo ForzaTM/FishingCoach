@@ -1,4 +1,4 @@
--- ReelGold: general fishing tips (based on WoW: Forever fishing rules).
+-- Fishing Coach: general fishing tips (based on WoW: Forever fishing rules).
 -- Context-aware tips (lure missing, day/night, season, Extravaganza, ...)
 -- are generated in Core\Recommend.lua.
 local _, ns = ...
@@ -25,5 +25,5 @@ ns.Tips = {
     { icon = "Interface\\Icons\\INV_Misc_Fish_02",
       text = "Legacy perk Luremaster gives a 25-50% chance for an extra fish while a lure is active." },
     { icon = "Interface\\Icons\\Trade_Engineering",
-      text = "ReelGold only reads loot and prices. Casting and looting stay manual, as Blizzard's rules require - never use bots or automation." },
+      text = "Fishing Coach only reads loot and prices. Casting and looting stay manual, as Blizzard's rules require - never use bots or automation." },
 }

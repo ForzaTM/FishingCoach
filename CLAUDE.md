@@ -1,14 +1,19 @@
-# ReelGold: project context
+# Fishing Coach: project context
 
 Context for anyone (human or AI) making future updates. Read this first, then
 `README.md` for user-facing docs. Keep this file current when decisions change.
 
 ## What it is
+**Renamed 2026-11-16 from "ReelGold" to "Fishing Coach"** (code name `FishingCoach`, saved vars
+`FishingCoachDB` / `FishingCoachCharDB`, commands `/fcoach` `/fishingcoach`). The installer migrates
+old `ReelGold` folders and `ReelGold.lua` saved variables (`$OldAddonName` in install.ps1).
+Use "Fishing Coach" in text players see, `FishingCoach` for folder/file/global names.
+
 A free World of Warcraft addon for **WoW: Forever**. It tracks fishing gold per
 time unit, ranks the most profitable fishing spots, and shows fishing tips.
-- Repo: https://github.com/ForzaTM/ReelGold (public, default branch `main`)
+- Repo: https://github.com/ForzaTM/FishingCoach (public, default branch `main`)
 - Releases: v1.0.0 (manual release, see history), v1.0.1 (first automatic release)
-- Owner works on Windows 11, repo at `E:\ClaudeWork\ReelGold`. Tools available:
+- Owner works on Windows 11, repo at `E:\ClaudeWork\FishingCoach`. Tools available:
   git, gh (logged in as ForzaTM), node/npm, Python 3.14, Windows PowerShell 5.1 + pwsh 7.
 
 ## The game: WoW: Forever (verified Nov 2026)
@@ -45,7 +50,7 @@ time unit, ranks the most profitable fishing spots, and shows fishing tips.
 
 ## Architecture
 ```
-ReelGold.toc          load order; Interface number; @project-version@ token
+FishingCoach.toc          load order; Interface number; @project-version@ token
 Data/GameVersion.lua  TESTED_INTERFACE / TESTED_CLIENT / DATA_VERSION / DATA_DATE
 Data/Fish.lua         itemID -> use hint; ns.Icons (UI texture paths)
 Data/Locations.lua    seed spots: mapID, minSkill, catchesPerHour, junkCopper, loot shares
@@ -65,25 +70,25 @@ UI/OptionsPanel.lua   Options -> AddOns page (Settings.RegisterCanvasLayoutCateg
 Core/Init.lua         saved vars, MIGRATIONS, events, slash commands (loaded last)
 Media/Icon.tga        128x128 32-bit TGA logo (built from docs/art/icon.svg by `npm run icon`)
 ```
-Saved variables: `ReelGoldDB` (account: settings, priceOverrides, zoneStats keyed by
-uiMapID) and `ReelGoldCharDB` (character: current session).
-Slash: `/rgold` or `/reelgold` with `show|guide|session|best|spots|tips|settings|options|prices|hud|reset|minimap|version`.
+Saved variables: `FishingCoachDB` (account: settings, priceOverrides, zoneStats keyed by
+uiMapID) and `FishingCoachCharDB` (character: current session).
+Slash: `/fcoach` or `/fishingcoach` with `show|guide|session|best|spots|tips|settings|options|prices|hud|reset|minimap|version`.
 
 ## Key behaviours and why
 - **Update notices (no network):** owner chose NOT to use guild/group version messages
   (keeps "sends nothing"). `ns.GetNotice()` in Init.lua: banner on top of the window when
   client interface > TESTED_INTERFACE (dismiss per interface: `dismissedInterface`) or when
-  ReelGold's version changed since last login (`lastSeenVersion` / `updatedFrom`; never for "dev").
+  Fishing Coach's version changed since last login (`lastSeenVersion` / `updatedFrom`; never for "dev").
   Settings has a read-only copyable `GameVersion.UPDATE_URL`.
 - **Gear checklist** (`R.GearAdvice`, Tips tab): each row has status missing / alt / have / later.
   Tips order: missing, alt, have, "Now" tips, later, general (page 1 = what fits your skill now).
-  `R.SnapshotInventory` saves each character's gear in `ReelGoldDB.inventory[Name-Realm]` (login,
+  `R.SnapshotInventory` saves each character's gear in `FishingCoachDB.inventory[Name-Realm]` (login,
   bag and equipment changes); alts only count for non-soulbound items. owned = bags+bank(+Warband) or equipped; pole
   advice is faction-aware; lures recommend strongest usable + cheapest vendor one; camping items
   show "At skill N" below their skill. Gloves enchant ID 845 is from classic data (unverified in Forever).
   Hut blueprint drop source was undocumented on 2026-11-16.
 - **First launch:** `seenGuide` false -> PLAYER_LOGIN opens the How to use tab after 3 s; also the
-  first `/rgold` without a tab. Set true when the guide tab is shown.
+  first `/fcoach` without a tab. Set true when the guide tab is shown.
 - **Policy guard:** `tests/run.js` fails if addon code calls message/cast/binding/AH-action APIs.
 - **AH cut toggle:** only on the Settings tab and Options page (owner moved it off the Session tab).
 - **Loot:** `LOOT_READY` and `LOOT_OPENED` both fire; a `handled` flag dedupes per
@@ -139,18 +144,18 @@ When Blizzard renames an API: fix `Core/Compat.lua` AND the matching fake in
 `DB_DEFAULTS.schema` and add a `MIGRATIONS[n]` function in `Core/Init.lua`.
 
 ## Installer (tools/installer)
-`Install-ReelGold.cmd` -> `install.ps1` (PowerShell 5.1 compatible: no `??`, no ternary).
+`Install-FishingCoach.cmd` -> `install.ps1` (PowerShell 5.1 compatible: no `??`, no ternary).
 Search order: registry (Blizzard + Uninstall keys), Battle.net `product.db` path
 strings, common folders on fixed drives, optional deep scan (depth 3, asks first).
 Flavors `_forever_` > `_forever_beta_` > `_forever_ptr_`. Only ever deletes a
-`ReelGold` folder that contains `ReelGold.toc`. Options: `-ListOnly -Path -Uninstall
+`Fishing Coach` folder that contains `FishingCoach.toc`. Options: `-ListOnly -Path -Uninstall
 -DeepScan -Yes` (+ `-SearchRoot -NoDefaultSearch` for tests). On the owner's PC it
 finds `D:\Games\World of Warcraft\_forever_`.
-Repo mode copies only TOC-listed files + LICENSE; bundle mode copies `.\ReelGold\`.
+Repo mode copies only TOC-listed files + LICENSE; bundle mode copies `.\Fishing Coach\`.
 
 ## Gotchas already hit
 - Textures: WoW reliably loads TGA/BLP (power-of-two sizes), referenced without extension.
-  `tests/run.js` fails if a referenced `Interface\AddOns\ReelGold\...` texture is missing.
+  `tests/run.js` fails if a referenced `Interface\AddOns\FishingCoach\...` texture is missing.
   The installer copies `Media/` in repo mode (it is not listed in the TOC).
   New files (TOC entries or textures) need a full client restart, not `/reload`.
 - Workflow `GITHUB_TOKEN` is read-only by default: release.yml needs
@@ -181,11 +186,11 @@ in-game screenshots when available. They don't show the For me / How to use tabs
 `docs/` is excluded from addon zips (`.pkgmeta` + `PACKAGE_IGNORE`).
 
 ## Open ideas / next steps
-- First real in-game test (`/rgold`, `/reload` after changes); fix what breaks.
+- First real in-game test (`/fcoach`, `/reload` after changes); fix what breaks.
 - Verify Forever uiMapIDs, zone skill requirements and fish in new zones; update Data/.
 - Owner creates the CurseForge project (see docs/curseforge/project-settings.md), sets the
   `CF_API_KEY` secret on their own (never handle the key), then add `## X-Curse-Project-ID:` and release.
 - Offered, not built: a browser UI preview driven by the mock (record SetPoint/SetSize/text
   and render it), as a layout check without the game.
-- Local reference pages (outside the repo, not maintained): `E:\ClaudeWork\ReelGold-ui-preview.html`
-  (hand-made mockup) and `E:\ClaudeWork\ReelGold-icon-gallery.html` (icons used).
+- Local reference pages (outside the repo, not maintained): `E:\ClaudeWork\FishingCoach-ui-preview.html`
+  (hand-made mockup) and `E:\ClaudeWork\FishingCoach-icon-gallery.html` (icons used).

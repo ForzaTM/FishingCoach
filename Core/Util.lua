@@ -1,4 +1,4 @@
--- ReelGold: shared helpers.
+-- Fishing Coach: shared helpers.
 local _, ns = ...
 
 ns.Util = {}
@@ -62,7 +62,7 @@ function U.QualityColor(quality)
 end
 
 function U.Print(msg)
-    print("|cff33ccffReel|r|cffffd100Gold|r: " .. tostring(msg))
+    print("|cff33ccffFishing|r |cffffd100Coach|r: " .. tostring(msg))
 end
 
 -- Coalesces many refresh requests into one per frame burst.

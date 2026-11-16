@@ -1,4 +1,4 @@
--- ReelGold: small widget factory built only on long-lived Blizzard templates
+-- Fishing Coach: small widget factory built only on long-lived Blizzard templates
 -- (UIPanelButtonTemplate, UICheckButtonTemplate, InputBoxTemplate,
 -- BackdropTemplate) so the UI survives client updates.
 local _, ns = ...
@@ -111,7 +111,7 @@ function W.ItemIcon(parent, size)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetItemByID(self.itemID)
             local info = ns.Fish[self.itemID]
-            if info and info.use then GameTooltip:AddLine("ReelGold: " .. info.use, 0.2, 0.8, 1, true) end
+            if info and info.use then GameTooltip:AddLine("Fishing Coach: " .. info.use, 0.2, 0.8, 1, true) end
             local d = ns.Pricing.GetDetail(self.itemID)
             local src = d.source
             local M = ns.Util.Money
@@ -128,7 +128,7 @@ function W.ItemIcon(parent, size)
                 GameTooltip:AddDoubleLine("Your price", M(d.value), 1, 0.82, 0, 1, 1, 1)
             end
             GameTooltip:AddDoubleLine("Vendor price", M(d.vendor), 0.7, 0.7, 0.7, 0.7, 0.7, 0.7)
-            GameTooltip:AddDoubleLine("ReelGold counts", M(d.value) .. " (" .. (src == "Vendor" and "vendor" or src) .. ")",
+            GameTooltip:AddDoubleLine("Fishing Coach counts", M(d.value) .. " (" .. (src == "Vendor" and "vendor" or src) .. ")",
                 0.2, 1, 0.2, 0.2, 1, 0.2)
             if src == "Auctionator" then
                 local age = ns.Pricing.GetAuctionAge(self.itemID)

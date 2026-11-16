@@ -1,4 +1,4 @@
-"""Renders CurseForge preview screenshots of the ReelGold UI.
+"""Renders CurseForge preview screenshots of the Fishing Coach UI.
 
 The scenes are a hand-made HTML mockup that follows the layout in UI/*.lua
 (sizes, positions, texts) with example data and real WoW icons from the
@@ -44,7 +44,7 @@ def tabs(active):
 
 
 def frame(active, body):
-    return ('<div class="win"><div class="title">%s <span>Reel<b>Gold</b></span><div class="x">&#x2715;</div></div>%s<div class="body">%s</div></div>'
+    return ('<div class="win"><div class="title">%s <span>Fishing <b>Coach</b></span><div class="x">&#x2715;</div></div>%s<div class="body">%s</div></div>'
             % (ic("trade_fishing", 26), tabs(active), body))
 
 
@@ -116,7 +116,7 @@ settings = frame("Settings", """<div class="hdr">%s Prices</div>
 
 hud = """<div class="hud"><img class="ii34" src="%s"><div><div class="hr">%s <i>per hour</i></div><div class="sm">1h 04m &middot; 131 catches</div><div class="sm">Total %s</div></div></div>""" % (
     I("inv_misc_fish_11"), money(40, 93), money(43, 13))
-mm = """<div class="tt" style="width:250px"><div class="ttt">Reel<b class="y">Gold</b></div><div class="dl"><b>Gold per hour</b><span>40g 93s</span></div>
+mm = """<div class="tt" style="width:250px"><div class="ttt">Fishing <b class="y">Coach</b></div><div class="dl"><b>Gold per hour</b><span>40g 93s</span></div>
 <div class="dl"><b>Session value</b><span>43g 13s</span></div><div class="dl"><b>Best spot</b><span>Azshara</span></div><br><div class="gr sm">Left-click: open &middot; Right-click: toggle HUD</div></div>"""
 
 css = """body{background:linear-gradient(#24323a,#1a2420);color:#fff;font:12px Georgia,serif;margin:0;padding:20px 16px}
@@ -179,7 +179,7 @@ def main():
             page.write_text(
                 '<!doctype html><html><head><meta charset="utf-8"><style>%s %s</style></head><body>'
                 '<div class="cap">%s<small>%s</small></div><div class="stage">%s</div>'
-                '<div class="note">Preview mockup of the ReelGold UI with example values, not an in-game screenshot</div>'
+                '<div class="note">Preview mockup of the Fishing Coach UI with example values, not an in-game screenshot</div>'
                 '</body></html>' % (css, scene_css, title, sub, inner), encoding="utf-8")
             out = OUT / (name + ".png")
             subprocess.run([browser, "--headless=new", "--disable-gpu", "--hide-scrollbars",

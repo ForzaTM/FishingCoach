@@ -1,4 +1,4 @@
--- ReelGold: spot ranking and context tips.
+-- Fishing Coach: spot ranking and context tips.
 local _, ns = ...
 
 local R = {}
@@ -206,7 +206,7 @@ end
 -- Gear advice: what you have and what is missing to fish efficiently,
 -- and where to get it (Tips tab). Reads bags, bank, Warband bank and
 -- equipped items. Each of your characters' gear is remembered in
--- ReelGoldDB.inventory, so items on an alt can be pointed out too.
+-- FishingCoachDB.inventory, so items on an alt can be pointed out too.
 ----------------------------------------------------------------------
 local function GearName(e)
     return (e.id and ns.C.GetItemInfo(e.id)) or e.name
@@ -216,7 +216,7 @@ local function FactionOK(e, faction)
     return not e.faction or not faction or e.faction == faction
 end
 
--- Every gear item ID ReelGold tracks.
+-- Every gear item ID Fishing Coach tracks.
 local function GearIDs()
     local ids = {}
     for _, list in pairs(ns.Gear) do
