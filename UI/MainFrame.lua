@@ -5,8 +5,8 @@ local W, U = ns.Widgets, ns.Util
 local UI = {}
 ns.UI = UI
 
-local WIDTH, HEIGHT = 470, 520
-local LOOT_ROWS, SPOT_ROWS, TIP_ROWS = 7, 7, 6
+local WIDTH, HEIGHT = 560, 520
+local LOOT_ROWS, SPOT_ROWS, TIP_ROWS = 7, 7, 7
 local frame, tabs, panels, current = nil, {}, {}, "session"
 
 ----------------------------------------------------------------------
@@ -423,22 +423,35 @@ end
 ----------------------------------------------------------------------
 -- Tips tab
 ----------------------------------------------------------------------
+local TIP_STYLE = {
+    -- status = { r, g, b, a background, check texture }
+    have    = { 0.15, 0.65, 0.15, 0.22, "Interface\\RaidFrame\\ReadyCheck-Ready" },
+    alt     = { 0.15, 0.40, 0.75, 0.22, "Interface\\RaidFrame\\ReadyCheck-Waiting" },
+    missing = { 0.70, 0.15, 0.15, 0.14 },
+}
+
 local function BuildTips(p)
     p.header = W.Text(p, "GameFontNormal", U.Icon(ns.Icons.book) .. " Fishing tips")
     p.header:SetPoint("TOPLEFT", 14, -12)
     p.rows = {}
     for i = 1, TIP_ROWS do
         local row = CreateFrame("Frame", nil, p)
-        row:SetSize(WIDTH - 40, 58)
-        row:SetPoint("TOPLEFT", 14, -40 - (i - 1) * 60)
+        row:SetSize(WIDTH - 36, 52)
+        row:SetPoint("TOPLEFT", 12, -38 - (i - 1) * 55)
+        -- Highlight behind owned / missing gear rows.
+        row.bg = row:CreateTexture(nil, "BACKGROUND")
+        row.bg:SetAllPoints()
         -- Item icon with tooltip (gear rows), or a plain icon (tips).
         row.icon = W.ItemIcon(row, 30)
-        row.icon:SetPoint("TOPLEFT", 0, -2)
+        row.icon:SetPoint("TOPLEFT", 4, -4)
+        row.check = row:CreateTexture(nil, "OVERLAY")
+        row.check:SetSize(16, 16)
+        row.check:SetPoint("BOTTOMRIGHT", row.icon, "BOTTOMRIGHT", 5, -5)
         row.text = W.Text(row, "GameFontHighlightSmall")
         row.text:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, 0)
-        row.text:SetPoint("RIGHT", 0, 0)
+        row.text:SetPoint("RIGHT", -6, 0)
         row.text:SetJustifyV("TOP")
-        row.text:SetHeight(56)
+        row.text:SetHeight(46)
         p.rows[i] = row
     end
     p.pager = W.Pager(p, TIP_ROWS, function() UI.Refresh() end)
@@ -446,17 +459,22 @@ local function BuildTips(p)
 end
 
 local function RefreshTips(p)
-    -- Order: what matters right now, then missing gear, then general tips.
-    local list, missing = {}, 0
-    for _, t in ipairs(ns.Recommend.ContextTips()) do list[#list + 1] = t end
-    for _, t in ipairs(ns.Recommend.GearAdvice()) do
-        list[#list + 1] = t
-        if t.itemID or t.icon ~= ns.Icons.pole then missing = missing + 1 end
+    -- First page = what you can act on at your current skill:
+    -- missing gear you can get now, gear on your alts, gear you have,
+    -- then "Now" tips, gear for a higher skill, and general tips.
+    local groups = { missing = {}, alt = {}, have = {}, context = {}, later = {}, general = {} }
+    for _, t in ipairs(ns.Recommend.ContextTips()) do tinsert(groups.context, t) end
+    for _, t in ipairs(ns.Recommend.GearAdvice()) do tinsert(groups[t.status] or groups.later, t) end
+    for _, t in ipairs(ns.Tips) do tinsert(groups.general, t) end
+    local list = {}
+    for _, g in ipairs({ "missing", "alt", "have", "context", "later", "general" }) do
+        for _, t in ipairs(groups[g]) do list[#list + 1] = t end
     end
-    for _, t in ipairs(ns.Tips) do list[#list + 1] = t end
-    p.header:SetText(U.Icon(ns.Icons.book) .. " Fishing tips"
-        .. (missing > 0 and ("   |cffff5555%d gear item%s to get|r"):format(missing, missing == 1 and "" or "s")
-            or "   |cff33ff33all fishing gear found|r"))
+
+    local nMissing, nHave = #groups.missing + #groups.alt, #groups.have
+    p.header:SetText(U.Icon(ns.Icons.book) .. " Fishing tips   "
+        .. (nMissing > 0 and ("|cffff5555%d to get now|r"):format(nMissing) or "|cff33ff33nothing missing for your skill|r")
+        .. ("  ·  |cff33ff33%d owned|r"):format(nHave))
     p.pager:SetTotal(#list)
     p.pager.label:SetText(("%d / %d"):format(p.pager.page, p.pager:Pages()))
     p.pager.prev:SetEnabled(p.pager.page > 1)
@@ -464,12 +482,26 @@ local function RefreshTips(p)
     local offset = (p.pager.page - 1) * TIP_ROWS
     for i, row in ipairs(p.rows) do
         local t = list[offset + i]
+        row.status = t and t.status
         if t then
             if t.itemID then
                 row.icon:SetItem(t.itemID)
                 if not ns.C.GetItemInfo(t.itemID) then ns.C.RequestItem(t.itemID) end
             else
                 row.icon:SetTex(t.icon or ns.Icons.fishing)
+            end
+            local style = t.status and TIP_STYLE[t.status]
+            if style then
+                row.bg:SetColorTexture(style[1], style[2], style[3], style[4])
+                row.bg:Show()
+            else
+                row.bg:Hide()
+            end
+            if style and style[5] then
+                row.check:SetTexture(style[5])
+                row.check:Show()
+            else
+                row.check:Hide()
             end
             row.text:SetText((t.context and "|cffffd100Now:|r " or "") .. t.text)
             row:Show()
@@ -637,6 +669,54 @@ local function RefreshSettings(p)
 end
 
 ----------------------------------------------------------------------
+-- How to use tab (opens by itself on the very first launch)
+----------------------------------------------------------------------
+local SelectTab -- defined with the frame below
+
+local GUIDE = {
+    { icon = ns.Icons.coin, title = "Session",
+      text = "Just fish. Every catch is counted with its price, and gold per minute / hour / custom minutes uses active fishing time only (it pauses after 5 minutes without a catch). Reset session starts over." },
+    { icon = ns.Icons.pole, title = "For me",
+      text = "Your 3 best spots for your fishing skill, and the next better spot to unlock with the lure that gets you there." },
+    { icon = ns.Icons.map, title = "Spots",
+      text = "All spots ranked by gold per hour with your prices. Hover a row for catches and tips. After 40 catches in a zone your own results replace the estimate." },
+    { icon = ns.Icons.book, title = "Tips",
+      text = "Fishing gear you're missing and where to get it (|cff33ff33green|r = you have it, |cff66ccffblue|r = on another character), plus tips for right now." },
+    { icon = ns.Icons.lure, title = "Prices",
+      text = "Install Auctionator (or TSM) and scan the Auction House: ReelGold updates by itself. Refresh prices re-reads them. The 5% AH cut is in Settings." },
+    { icon = ns.Icons.logo, title = "HUD and minimap",
+      text = "The small HUD shows your gold per hour while you hold a fishing pole (X hides it). Minimap button: left-click opens ReelGold, right-click shows or hides the HUD." },
+    { icon = ns.Icons.gear, title = "Commands",
+      text = "/rgold opens ReelGold. Also /rgold best, spots, tips, prices, hud, options and guide (this page)." },
+    { icon = ns.Icons.fishing, title = "Safe to use",
+      text = "ReelGold only reads and displays. It never casts, loots, clicks or sends messages: fishing stays manual, as Blizzard's rules require." },
+}
+
+local function BuildGuide(p)
+    p.header = W.Text(p, "GameFontNormal", U.Icon(ns.Icons.logo) .. " How to use ReelGold"
+        .. "   |cff999999(open again any time: /rgold guide)|r")
+    p.header:SetPoint("TOPLEFT", 14, -12)
+    for i, g in ipairs(GUIDE) do
+        local icon = p:CreateTexture(nil, "ARTWORK")
+        icon:SetSize(26, 26)
+        icon:SetPoint("TOPLEFT", 14, -36 - (i - 1) * 46)
+        icon:SetTexture(g.icon)
+        if g.icon ~= ns.Icons.logo then icon:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
+        local text = W.Text(p, "GameFontHighlightSmall", "|cffffd100" .. g.title .. ":|r " .. g.text)
+        text:SetPoint("TOPLEFT", icon, "TOPRIGHT", 10, 0)
+        text:SetPoint("RIGHT", -16, 0)
+        text:SetJustifyV("TOP")
+    end
+    local start = W.Button(p, "Start fishing", 120, 22, function() SelectTab("session") end)
+    start:SetPoint("BOTTOMRIGHT", -14, 12)
+    p.start = start
+end
+
+local function RefreshGuide(p)
+    ns.db.seenGuide = true
+end
+
+----------------------------------------------------------------------
 -- Frame
 ----------------------------------------------------------------------
 local TABS = {
@@ -645,9 +725,10 @@ local TABS = {
     { key = "spots",    label = "Spots",    icon = ns.Icons.map,   build = BuildSpots,    refresh = RefreshSpots },
     { key = "tips",     label = "Tips",     icon = ns.Icons.book,  build = BuildTips,     refresh = RefreshTips },
     { key = "settings", label = "Settings", icon = ns.Icons.gear,  build = BuildSettings, refresh = RefreshSettings },
+    { key = "guide",    label = "How to use", icon = ns.Icons.question, build = BuildGuide, refresh = RefreshGuide },
 }
 
-local function SelectTab(key)
+SelectTab = function(key) -- assigns the local declared above
     current = key
     ns.db.lastTab = key
     for _, t in ipairs(TABS) do
@@ -781,6 +862,7 @@ end
 
 function UI.Toggle(tab)
     if not frame then Create() end
+    if not tab and not ns.db.seenGuide then tab = "guide" end
     if tab then
         frame:Show()
         SelectTab(tab)

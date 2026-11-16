@@ -272,6 +272,9 @@ GetInventoryItemID = function(_, slot) if slot == 16 then return Mock.pole end e
 Mock.bags = {}          -- [itemID] = count (bags + bank)
 Mock.equipped = {}      -- [itemID] = true (besides the pole in Mock.pole)
 Mock.faction = "Alliance"
+Mock.playerName, Mock.realm = "Forza", "TestRealm"
+UnitName = function() return Mock.playerName end
+GetRealmName = function() return Mock.realm end
 Mock.glovesEnchant = nil
 C_Item.GetItemCount = function(id) return Mock.bags[id] or 0 end
 C_Item.IsEquippedItem = function(id) return id == Mock.pole or Mock.equipped[id] == true end

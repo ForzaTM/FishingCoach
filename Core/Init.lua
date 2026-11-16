@@ -20,6 +20,8 @@ local DB_DEFAULTS = {
     seenDataVersion = 0,
     warnedInterface = 0,
     dismissedInterface = 0,
+    seenGuide = false,
+    inventory = {},   -- [Name-Realm] = { items = { [itemID] = count }, time }
     hud ={ shown = true, onlyWithPole = true, locked = false },
     main = {},
     minimap = { angle = 200, hide = false },
@@ -46,6 +48,8 @@ local refresh = U.Debounce(0.2, function()
     if ns.HUD then ns.HUD.Refresh() end
 end)
 function ns:FireRefresh() refresh() end
+-- Gear snapshot for the account-wide checklist (bag events come in bursts).
+local snapshot = U.Debounce(1, function() ns.Recommend.SnapshotInventory() end)
 
 local function VersionNotices()
     local gv = ns.GameVersion
@@ -138,6 +142,13 @@ events:SetScript("OnEvent", function(_, event, arg1)
         ns.HUD.UpdateVisibility()
         VersionNotices()
         TrackAddonVersion()
+        ns.Recommend.SnapshotInventory()
+        -- First launch: open the How to use tab once, after the login screen settles.
+        if not ns.db.seenGuide then
+            C_Timer.After(3, function()
+                if not ns.db.seenGuide then ns.UI.Toggle("guide") end
+            end)
+        end
         events:RegisterEvent("LOOT_READY")
         events:RegisterEvent("LOOT_OPENED")
         events:RegisterEvent("LOOT_CLOSED")
@@ -158,6 +169,10 @@ events:SetScript("OnEvent", function(_, event, arg1)
         ns.Tracker.OnLootClosed()
     elseif event == "PLAYER_EQUIPMENT_CHANGED" or (event == "UNIT_INVENTORY_CHANGED" and arg1 == "player") then
         ns.HUD.UpdateVisibility()
+        snapshot()
+        refresh()
+    elseif event == "BAG_UPDATE_DELAYED" then
+        snapshot()
         refresh()
     else
         refresh()
@@ -173,8 +188,10 @@ SlashCmdList.REELGOLD = function(msg)
     local cmd = strlower(strtrim(msg or ""))
     if cmd == "" or cmd == "show" then
         ns.UI.Toggle()
-    elseif cmd == "spots" or cmd == "tips" or cmd == "settings" or cmd == "session" or cmd == "best" then
+    elseif cmd == "spots" or cmd == "tips" or cmd == "settings" or cmd == "session" or cmd == "best" or cmd == "guide" then
         ns.UI.Toggle(cmd)
+    elseif cmd == "help" or cmd == "howto" then
+        ns.UI.Toggle("guide")
     elseif cmd == "hud" then
         ns.HUD.Toggle()
     elseif cmd == "reset" then
@@ -193,6 +210,6 @@ SlashCmdList.REELGOLD = function(msg)
         U.Print(("v%s, data v%d (%s), checked on client %s / interface %d")
             :format(ns.version, gv.DATA_VERSION, gv.DATA_DATE, gv.TESTED_CLIENT, gv.TESTED_INTERFACE))
     else
-        U.Print("Commands: /rgold [show | session | best | spots | tips | settings | options | prices | hud | reset | minimap | version]")
+        U.Print("Commands: /rgold [show | guide | session | best | spots | tips | settings | options | prices | hud | reset | minimap | version]")
     end
 end

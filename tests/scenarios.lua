@@ -479,65 +479,122 @@ test("update notice banner: WoW patched, ReelGold updated, dismiss, copyable lin
     eq(box:GetText(), ns.GameVersion.UPDATE_URL, "link cannot be edited")
 end)
 
-test("Tips tab lists missing fishing gear and where to get it", function()
-    local function texts()
+test("Tips tab: gear you have (highlighted), on alts, missing now first, later last", function()
+    local function advice()
         local t = {}
-        for _, a in ipairs(R.GearAdvice()) do t[#t + 1] = (a.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) end
+        for _, a in ipairs(R.GearAdvice()) do
+            t[#t + 1] = { status = a.status, id = a.itemID, text = (a.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) }
+        end
         return t
     end
-    local function has(list, pattern)
-        for _, s in ipairs(list) do if s:find(pattern) then return true end end
-        return false
+    local function find(list, pattern)
+        for _, a in ipairs(list) do if a.text:find(pattern) then return a end end
     end
     local savedPole = Mock.pole
+    wipe(ReelGoldDB.inventory)
 
-    -- Alliance, skill 300, only the basic Fishing Pole equipped, nothing in bags.
+    -- Alliance, skill 300, basic pole equipped, nothing in bags.
+    Mock.playerName = "Forza"
     Mock.skill, Mock.faction, Mock.pole, Mock.bags, Mock.equipped, Mock.glovesEnchant =
         { rank = 300, max = 300, mod = 0 }, "Alliance", 6256, {}, {}, nil
-    local t = texts()
-    check(has(t, "^Better pole: Arcanite Fishing Pole %(%+35, yours %+0%): Stranglethorn Fishing Extravaganza"), "pole upgrade")
-    check(not has(t, "FC%-5000"), "Horde-only pole hidden for Alliance")
-    check(has(t, "^Missing: lures%. Strongest for you: Aquadynamic Fish Attractor %(%+100%).*Cheaper: Nightcrawlers %(%+50%): Fishing supply vendors"), "lures")
-    check(has(t, "^Missing: Fishing Rack%. Blueprint: Fishing Rack drops from Gelihast in Blackfathom Deeps"), "fishing rack")
-    check(has(t, "^Missing: Fishing Hut%."), "fishing hut")
-    check(has(t, "^Missing: Fish Bowl%. Fishing technique from any fishing trainer"), "fish bowl")
-    check(has(t, "^Missing: Lucky Fishing Hat %(%+5%)%. Stranglethorn Fishing Extravaganza: turn in Keefer's Angelfish"), "hat")
-    check(has(t, "^Missing: Enchant Gloves %- Fishing %(%+2%) on your gloves"), "gloves enchant")
-    eq(#t, 9, "9 things missing")
+    local t = advice()
+    eq(find(t, "^Have: Fishing Pole %(%+0%)%.$").status, "have", "basic pole shown as owned")
+    local a = find(t, "^Better pole: Arcanite Fishing Pole %(%+35, yours %+0%)%. Stranglethorn Fishing Extravaganza")
+    eq(a and a.status, "missing", "pole upgrade missing")
+    check(not find(t, "FC%-5000"), "Horde-only pole hidden for Alliance")
+    check(find(t, "^Missing: lures%. Strongest for you: Aquadynamic Fish Attractor %(%+100%).*Cheaper: Nightcrawlers"), "lures")
+    check(find(t, "^Missing: Fishing Rack%. Blueprint: Fishing Rack drops from Gelihast in Blackfathom Deeps"), "rack")
+    check(find(t, "^Missing: Lucky Fishing Hat %(%+5%)%. Stranglethorn Fishing Extravaganza: turn in Keefer's Angelfish"), "hat")
+    check(find(t, "^Missing: Enchant Gloves %- Fishing %(%+2%) on your gloves"), "gloves enchant")
 
-    -- Horde, skill 120 with a Strong Fishing Pole: FC-5000 next, Arcanite later, Hut at 300.
-    Mock.skill, Mock.faction, Mock.pole = { rank = 120, max = 150, mod = 0 }, "Horde", 6365
-    Mock.bags = { [6530] = 20 } -- Nightcrawlers in bags
-    t = texts()
-    check(has(t, "^Better pole: Nat Pagle's Extreme Angler FC%-5000 %(%+25, yours %+5%): Horde quest in The Hinterlands"), "FC-5000 for Horde")
-    check(has(t, "^Later, at skill 300: Arcanite Fishing Pole"), "Arcanite later")
-    check(has(t, "^Stronger lure: Aquadynamic Fish Attractor %(%+100, your best %+50%)"), "stronger lure than Nightcrawlers")
-    check(has(t, "^At skill 140: Fishing Rack%."), "rack needs 140")
-    check(has(t, "^At skill 300: Fishing Hut%."), "hut needs 300")
-
-    -- Everything owned: one happy line.
-    Mock.skill, Mock.pole = { rank = 300, max = 300, mod = 0 }, 19970
-    Mock.bags = { [6533] = 5, [279967] = 1, [279965] = 1, [279966] = 1, [19971] = 1 }
-    Mock.equipped = { [19972] = true, [19969] = true }
+    -- Own some gear: highlighted as "have" with counts.
+    Mock.bags = { [6530] = 20, [279965] = 2 }
+    Mock.equipped = { [19972] = true }
     Mock.glovesEnchant = "845"
-    t = texts()
-    eq(#t, 1, "nothing missing")
-    check(t[1]:find("You have all the fishing gear"), t[1])
+    Mock.Fire("BAG_UPDATE_DELAYED")
+    t = advice()
+    eq(find(t, "^Have: Nightcrawlers x20 %(%+50%)%.").status, "have")
+    eq(find(t, "^Stronger lure: Aquadynamic Fish Attractor %(%+100, your best %+50%)").status, "missing")
+    eq(find(t, "^Have: Fishing Rack x2: catches uncommon fish for 1 hour").status, "have")
+    eq(find(t, "^Have: Lucky Fishing Hat %(%+5%)%.").status, "have")
+    eq(find(t, "^Have: Enchant Gloves %- Fishing %(%+2%) on your gloves").status, "have")
 
-    -- Fishing not learned.
-    Mock.skill = nil
-    t = texts()
-    eq(#t, 1); check(t[1]:find("Missing: the Fishing skill"), t[1])
+    -- Account-wide: an alt carries tradable gear -> "On Alt: ... Mail it".
+    Mock.playerName = "Forzalt"
+    Mock.bags = { [279966] = 1, [6533] = 10, [19970] = 1 } -- Hut, Attractors, Arcanite pole (soulbound)
+    Mock.pole = 6256
+    Mock.Fire("PLAYER_LOGIN"); Mock.FlushTimers()
+    check(ReelGoldDB.inventory["Forzalt-TestRealm"].items[279966] == 1, "alt's gear remembered")
+    Mock.playerName = "Forza"
+    Mock.bags = { [6530] = 20, [279965] = 2 }
+    t = advice()
+    a = find(t, "^On Forzalt: Missing: Fishing Hut%. Mail it to this character")
+    eq(a and a.status, "alt", "Fishing Hut on the alt")
+    a = find(t, "^On Forzalt: Stronger lure: Aquadynamic Fish Attractor")
+    eq(a and a.status, "alt", "Attractors on the alt")
+    a = find(t, "^Better pole: Arcanite Fishing Pole")
+    eq(a and a.status, "missing", "soulbound Arcanite on the alt can't be mailed: still missing here")
 
-    -- Tips tab shows them with item icons and a count in the header.
-    Mock.skill, Mock.pole, Mock.bags, Mock.equipped, Mock.glovesEnchant = { rank = 300, max = 300, mod = 25 }, 6256, {}, {}, nil
+    -- Horde, skill 120: things needing more skill are 'later'.
+    Mock.skill, Mock.faction, Mock.pole, Mock.bags, Mock.equipped = { rank = 120, max = 150, mod = 0 }, "Horde", 6365, {}, {}
+    wipe(ReelGoldDB.inventory)
+    t = advice()
+    eq(find(t, "^Better pole: Nat Pagle's Extreme Angler FC%-5000 %(%+25, yours %+5%)").status, "missing")
+    eq(find(t, "^At skill 300: Arcanite Fishing Pole").status, "later")
+    eq(find(t, "^At skill 140: Fishing Rack").status, "later")
+
+    -- Tips tab: first page = missing-now, then owned (green + check), later at the end.
+    Mock.skill, Mock.faction = { rank = 300, max = 300, mod = 25 }, "Alliance"
+    -- Owns pole, lures, camping items and hat; missing boots, line and gloves enchant.
+    Mock.pole, Mock.equipped, Mock.glovesEnchant = 19970, { [19972] = true }, nil
+    Mock.bags = { [6533] = 10, [279967] = 1, [279965] = 1, [279966] = 1 }
     ns.UI.Toggle("tips"); ns.UI.Refresh()
-    local tipsHeader
+    local rows = {}
     for _, f in ipairs(Mock.frames) do
-        if f.text and f.icon and f.icon.itemID == 19970 and f:IsShown() then tipsHeader = f end
+        if f.check and f.icon and f.text and f:IsShown() then rows[#rows + 1] = f end
     end
-    check(tipsHeader, "Arcanite Fishing Pole row with its item icon on the Tips tab")
-    Mock.pole, Mock.faction = savedPole, "Alliance"
+    eq(#rows, 7, "7 rows on the first page")
+    local order = {}
+    for _, r in ipairs(rows) do order[#order + 1] = r.status or "tip" end
+    REPORT("    Tips page 1 order: " .. table.concat(order, ", "))
+    local seenHave = false
+    for _, s in ipairs(order) do
+        if s == "have" then seenHave = true end
+        check(not (seenHave and s == "missing"), "missing gear comes before owned gear")
+        check(s ~= "later", "nothing for a higher skill on page 1")
+    end
+    local haveRows = 0
+    for _, r in ipairs(rows) do
+        if r.status == "have" then
+            haveRows = haveRows + 1
+            check(r.bg:IsShown() and r.check:IsShown(), "owned row highlighted with a check mark")
+            eq(r.check.__texture, [[Interface\RaidFrame\ReadyCheck-Ready]], "green check mark")
+        elseif r.status == "missing" then
+            check(not r.check:IsShown(), "no check mark on missing gear")
+        end
+    end
+    eq(order[1], "missing", "missing gear first")
+    check(haveRows >= 3, "owned gear on page 1: " .. haveRows)
+    Mock.pole, Mock.bags, Mock.equipped, Mock.glovesEnchant = savedPole, {}, {}, nil
+end)
+
+test("How to use tab opens on the very first launch only", function()
+    ReelGoldDB.seenGuide = false
+    if ReelGoldMainFrame then ReelGoldMainFrame:Hide() end
+    Mock.Fire("PLAYER_LOGIN"); Mock.FlushTimers()
+    check(ReelGoldMainFrame:IsShown(), "window opened by itself on first launch")
+    eq(ReelGoldDB.lastTab, "guide", "on the How to use tab")
+    eq(ReelGoldDB.seenGuide, true, "remembered")
+    local startBtn
+    for _, f in ipairs(Mock.frames) do if f.__text == "Start fishing" then startBtn = f end end
+    check(startBtn, "Start fishing button")
+    startBtn.__scripts.OnClick(startBtn, "LeftButton")
+    eq(ReelGoldDB.lastTab, "session", "Start fishing goes to the Session tab")
+    ReelGoldMainFrame:Hide()
+    Mock.Fire("PLAYER_LOGIN"); Mock.FlushTimers()
+    check(not ReelGoldMainFrame:IsShown(), "not opened again on the next login")
+    SlashCmdList.REELGOLD("guide")
+    eq(ReelGoldDB.lastTab, "guide", "/rgold guide opens it")
 end)
 
 test("HUD has a close button that hides it until shown again", function()
@@ -633,7 +690,7 @@ test("UI smoke test: every tab, button, tooltip and slash command runs", functio
         Mock.FlushTimers()
     end
     check(ReelGoldMainFrame and ReelGoldMainFrame:IsShown(), "main window open")
-    for _, tab in ipairs({ "session", "spots", "tips", "settings" }) do
+    for _, tab in ipairs({ "session", "best", "spots", "tips", "settings", "guide" }) do
         ns.UI.Toggle(tab); ns.UI.Refresh()
     end
     local fired = 0

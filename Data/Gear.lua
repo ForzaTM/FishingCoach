@@ -46,13 +46,13 @@ ns.Gear = {
     -- WoW: Forever camping utilities (placed near a campfire, 1 hour shared cooldown).
     camping = {
         { id = 279967, name = "Fish Bowl",    minSkill = 20,
-          source = "Fishing technique from any fishing trainer",
+          source = "Fishing technique from any fishing trainer", effect = "+8% stats for you and seated friends",
           note = "Craft: 1 Raw Brilliant Smallfish + 1 Empty Vial. +8% stats for you and seated friends." },
         { id = 279965, name = "Fishing Rack", minSkill = 140,
-          source = "Blueprint: Fishing Rack drops from Gelihast in Blackfathom Deeps",
+          source = "Blueprint: Fishing Rack drops from Gelihast in Blackfathom Deeps", effect = "catches uncommon fish for 1 hour",
           note = "Craft: 2 Simple Wood, 1 Crystal Vial, 2 Raw Mithril Head Trout. Catches uncommon fish for 1 hour." },
         { id = 279966, name = "Fishing Hut",  minSkill = 300,
-          source = "Blueprint: Fishing Hut (drop; source not documented yet)",
+          source = "Blueprint: Fishing Hut (drop; source not documented yet)", effect = "catches rare fish for 1 hour",
           note = "Craft: 5 Simple Wood, 2 Bolt of Runecloth, 1 Seasonal Fish Steaks. Catches rare fish for 1 hour." },
     },
 }

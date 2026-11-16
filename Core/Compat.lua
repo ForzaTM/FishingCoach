@@ -110,7 +110,8 @@ end
 -- How many of an item you carry (bags) and whether it is equipped.
 function C.GetItemCount(id)
     local n
-    if C_Item and C_Item.GetItemCount then n = C_Item.GetItemCount(id, true)
+    -- bags + bank (+ reagent bank and Warband bank where the client has them)
+    if C_Item and C_Item.GetItemCount then n = C_Item.GetItemCount(id, true, false, true, true)
     elseif GetItemCount then n = GetItemCount(id, true) end
     if C.IsSecret(n) then return 0 end
     return n or 0
@@ -123,6 +124,18 @@ end
 
 function C.Owns(id)
     return C.GetItemCount(id) > 0 or C.IsEquipped(id)
+end
+
+-- "Name-Realm" of the logged-in character.
+function C.PlayerKey()
+    local name = UnitName and UnitName("player") or "?"
+    local realm = GetRealmName and GetRealmName() or "?"
+    return name .. "-" .. realm, name
+end
+
+-- True when the item binds on pickup (can't be mailed to another character).
+function C.IsSoulbound(id)
+    return select(14, C.GetItemInfo(id)) == 1
 end
 
 function C.Faction()

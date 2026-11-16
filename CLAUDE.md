@@ -58,7 +58,7 @@ Core/Pricing.lua      manual override > Auctionator > TSM > vendor; 5% AH cut op
 Core/Tracker.lua      session + per-zone stats from fishing loot only
 Core/Recommend.lua    spot ranking + context tips
 UI/Widgets.lua        tiny widget factory on long-lived Blizzard templates
-UI/MainFrame.lua      470x520 window: Session / For me / Spots / Tips / Settings tabs (paged rows, no scroll frames)
+UI/MainFrame.lua      560x520 window: Session / For me / Spots / Tips / Settings / How to use tabs (paged rows)
 UI/HUD.lua            222x62 movable tracker with close (X) button; X sets hud.shown=false
 UI/MinimapButton.lua  library-free minimap button + Addon Compartment functions
 UI/OptionsPanel.lua   Options -> AddOns page (Settings.RegisterCanvasLayoutCategory), registered on PLAYER_LOGIN
@@ -67,7 +67,7 @@ Media/Icon.tga        128x128 32-bit TGA logo (built from docs/art/icon.svg by `
 ```
 Saved variables: `ReelGoldDB` (account: settings, priceOverrides, zoneStats keyed by
 uiMapID) and `ReelGoldCharDB` (character: current session).
-Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|options|prices|hud|reset|minimap|version`.
+Slash: `/rgold` or `/reelgold` with `show|guide|session|best|spots|tips|settings|options|prices|hud|reset|minimap|version`.
 
 ## Key behaviours and why
 - **Update notices (no network):** owner chose NOT to use guild/group version messages
@@ -75,10 +75,15 @@ Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|optio
   client interface > TESTED_INTERFACE (dismiss per interface: `dismissedInterface`) or when
   ReelGold's version changed since last login (`lastSeenVersion` / `updatedFrom`; never for "dev").
   Settings has a read-only copyable `GameVersion.UPDATE_URL`.
-- **Gear checklist** (`R.GearAdvice`, Tips tab): owned = bags+bank count or equipped; pole
+- **Gear checklist** (`R.GearAdvice`, Tips tab): each row has status missing / alt / have / later.
+  Tips order: missing, alt, have, "Now" tips, later, general (page 1 = what fits your skill now).
+  `R.SnapshotInventory` saves each character's gear in `ReelGoldDB.inventory[Name-Realm]` (login,
+  bag and equipment changes); alts only count for non-soulbound items. owned = bags+bank(+Warband) or equipped; pole
   advice is faction-aware; lures recommend strongest usable + cheapest vendor one; camping items
   show "At skill N" below their skill. Gloves enchant ID 845 is from classic data (unverified in Forever).
   Hut blueprint drop source was undocumented on 2026-11-16.
+- **First launch:** `seenGuide` false -> PLAYER_LOGIN opens the How to use tab after 3 s; also the
+  first `/rgold` without a tab. Set true when the guide tab is shown.
 - **Policy guard:** `tests/run.js` fails if addon code calls message/cast/binding/AH-action APIs.
 - **AH cut toggle:** only on the Settings tab and Options page (owner moved it off the Session tab).
 - **Loot:** `LOOT_READY` and `LOOT_OPENED` both fire; a `handled` flag dedupes per
@@ -171,7 +176,7 @@ Repo mode copies only TOC-listed files + LICENSE; bundle mode copies `.\ReelGold
 design, no Blizzard art), `screenshots/*.png` (1280x720). Screenshots are a
 labelled MOCKUP rendered by `python tools/curseforge/make_screenshots.py`
 (headless Edge/Chrome, icons from the Wowhead CDN); replace them with real
-in-game screenshots when available. They don't show the For me tab or the HUD close button yet. Re-render the logo with headless Edge
+in-game screenshots when available. They don't show the For me / How to use tabs, the HUD close button or the 560 px width yet. Re-render the logo with headless Edge
 (`--screenshot --window-size=400,400` on an HTML page embedding logo.svg).
 `docs/` is excluded from addon zips (`.pkgmeta` + `PACKAGE_IGNORE`).
 

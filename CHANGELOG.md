@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- Gear checklist shows what you already have (green highlight with a check mark) and what another of your characters carries (blue: mail it over; soulbound items excluded). The first page lists what you can get now at your skill; items for a higher skill come later.
+- New "How to use" tab with a short guide; it opens by itself on the very first launch. `/rgold guide` opens it again.
+- Window is a bit wider (560 px) to fit six tabs.
 - Tips tab: checklist of fishing gear you're missing and where to get it: better pole (faction-aware), strongest usable lure, Fish Bowl / Fishing Rack / Fishing Hut, Lucky Fishing Hat, Anglin' Boots, Eternium Fishing Line and the gloves fishing enchant. Checks your bags, bank and equipped items; item icons with tooltips.
 - The 5% AH cut toggle is on the Settings tab (and in Options); switching it updates totals and gold per time at once. The gold-per-time label says whether the cut is applied.
 - Update notices on top of the ReelGold window: when WoW: Forever is patched (a ReelGold update is then likely) and after ReelGold itself was updated. Settings shows a copyable link to the latest releases. ReelGold still sends nothing: no addon or chat messages.
