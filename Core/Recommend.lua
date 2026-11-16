@@ -89,7 +89,8 @@ function R.Rank()
     end
 
     for _, e in ipairs(list) do
-        e.canFish = (skill == nil) or (e.minSkill == nil) or (skill >= e.minSkill)
+        -- Your own catch data proves you can fish there, whatever the estimate says.
+        e.canFish = e.learned or (skill == nil) or (e.minSkill == nil) or (skill >= e.minSkill)
     end
     table.sort(list, function(a, b)
         if a.canFish ~= b.canFish then return a.canFish end

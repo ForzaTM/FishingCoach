@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Spots where you already have your own catch data are no longer marked as too hard for your skill.
+- Added an offline test suite (`npm test`) that runs the addon against a mocked WoW API.
 
 ## 1.0.0 (2026-11-16)
 - First release for WoW: Forever 1.60.1 (interface 16001).

@@ -1,0 +1,11 @@
+{
+  "name": "reelgold-dev",
+  "private": true,
+  "description": "Offline test harness for the ReelGold WoW addon (runs the addon Lua against a mocked WoW API).",
+  "scripts": {
+    "test": "node tests/run.js"
+  },
+  "devDependencies": {
+    "fengari": "0.1.4"
+  }
+}

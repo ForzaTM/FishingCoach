@@ -1,0 +1,335 @@
+-- ReelGold offline scenarios. Loaded by tests/run.js after wowmock.lua.
+-- Each test runs against the real addon files listed in ReelGold.toc.
+
+local passed, failed, failures = 0, 0, {}
+local current
+
+local function check(cond, msg)
+    if not cond then error(msg or "check failed", 2) end
+end
+local function eq(a, b, msg)
+    if a ~= b then error(("%s: expected %s, got %s"):format(msg or "value", tostring(b), tostring(a)), 2) end
+end
+local function near(a, b, tol, msg)
+    if math.abs(a - b) > (tol or 1e-6) then error(("%s: expected ~%s, got %s"):format(msg or "value", tostring(b), tostring(a)), 2) end
+end
+local function test(name, fn)
+    current = name
+    local ok, err = xpcall(fn, debug.traceback)
+    if ok then
+        passed = passed + 1
+        REPORT("  PASS  " .. name)
+    else
+        failed = failed + 1
+        failures[#failures + 1] = name
+        REPORT("  FAIL  " .. name .. "\n" .. tostring(err))
+    end
+end
+
+----------------------------------------------------------------------
+-- Load the addon exactly as the client would (TOC order, shared ns).
+----------------------------------------------------------------------
+local ns = {}
+for _, path in ipairs(TOC_FILES) do
+    local chunk, err = loadfile(path)
+    if not chunk then error("Cannot load " .. path .. ": " .. tostring(err)) end
+    chunk("ReelGold", ns)
+end
+Mock.Fire("ADDON_LOADED", "ReelGold")
+Mock.Fire("PLAYER_LOGIN")
+
+local T, P, R, U = ns.Tracker, ns.Pricing, ns.Recommend, ns.Util
+
+-- One typical Azshara catch sequence, repeated (approximately the seed shares).
+local AZSHARA = {
+    { {13422, 1} }, { {13893, 1} }, { {13422, 2} }, { {13756, 1} }, { {13757, 1} },
+    { {13422, 1} }, { {13893, 1} }, { {7973, 1} }, { {13422, 1} }, { {13756, 1} },
+}
+local function FishFor(n, every, pattern, coinsEvery)
+    for i = 1, n do
+        Mock.Advance(every)
+        local coins = (coinsEvery and i % coinsEvery == 0) and 35 or 0
+        Mock.Catch(pattern[(i - 1) % #pattern + 1], coins)
+    end
+end
+
+REPORT("ReelGold offline tests (mock WoW API, " .. _VERSION .. ")\n")
+
+test("addon loads, saved variables get defaults, slash command registered", function()
+    check(ReelGoldDB and ReelGoldCharDB, "saved variables created")
+    eq(ReelGoldDB.timeUnit, "hour", "default time unit")
+    eq(ReelGoldDB.idleTimeout, 300, "default idle timeout")
+    eq(ReelGoldDB.priceSource, "auto", "default price source")
+    check(type(SlashCmdList.REELGOLD) == "function", "slash handler")
+    eq(SLASH_REELGOLD1, "/reelgold")
+    eq(ns.version, "dev", "unpackaged version shows as dev")
+end)
+
+test("money formatting", function()
+    local plain = function(c) return (U.Money(c):gsub("|T[^|]+|t", "")) end
+    eq(plain(0), "0", "zero")
+    eq(plain(57), "57", "copper only")
+    eq(plain(1234), "12 34", "silver and copper")
+    eq(plain(409312), "40 93 12", "gold silver copper")
+    eq((U.Money(409312, true):gsub("|T[^|]+|t", "")), "40 93", "short form drops copper")
+    eq(U.Duration(3725), "1h 02m", "duration hours")
+    eq(U.Duration(75), "1m 15s", "duration minutes")
+end)
+
+test("vendor pricing when no auction addon is installed", function()
+    eq(P.Get(13422), 10, "Stonescale vendor price")
+    local _, src = P.Get(13422)
+    eq(src, "Vendor")
+end)
+
+test("fishing catches are counted once per loot window (READY + OPENED dedupe)", function()
+    T.Reset()
+    Mock.Catch({ {13422, 1} })
+    local s = T.Session()
+    eq(s.catches, 1, "one catch")
+    eq(s.items[13422], 1, "one eel")
+end)
+
+test("non-fishing loot (mobs, chests) is ignored", function()
+    T.Reset()
+    Mock.Catch({ {13422, 5} }, 0, false)
+    eq(T.Session().catches, 0, "no catch recorded")
+    eq(T.Session().items[13422], nil, "no items recorded")
+end)
+
+test("active time: 20 catches every 15 s = 300 s", function()
+    T.Reset()
+    FishFor(20, 15, AZSHARA)
+    -- first catch counts a 15 s estimate, the next 19 add 15 s each
+    eq(T.Session().active, 300, "active seconds")
+    eq(T.Session().catches, 20, "catches")
+end)
+
+test("idle breaks do not count (AFK 20 min, then fish again)", function()
+    T.Reset()
+    FishFor(10, 15, AZSHARA)
+    local before = T.Session().active
+    Mock.Advance(20 * 60)
+    check(T.IsIdle(), "session is idle during the break")
+    eq(T.ActiveSeconds(), before, "running time frozen while idle")
+    Mock.Catch({ {13422, 1} })
+    eq(T.Session().active, before + 15, "only a 15 s estimate added after the break")
+end)
+
+test("coins from fishing loot are added to the session", function()
+    T.Reset()
+    FishFor(10, 15, AZSHARA, 5)
+    eq(T.Session().money, 70, "two catches with 35 copper each")
+end)
+
+test("rate per minute / hour / custom minutes are consistent", function()
+    T.Reset()
+    FishFor(40, 15, AZSHARA)
+    ReelGoldDB.timeUnit = "hour";   local h = T.Rate()
+    ReelGoldDB.timeUnit = "minute"; local m = T.Rate()
+    ReelGoldDB.timeUnit = "custom"; ReelGoldDB.customMinutes = 30; local c = T.Rate()
+    ReelGoldDB.timeUnit = "hour"
+    check(h > 0, "hourly rate positive")
+    near(h, m * 60, 1e-6, "hour = 60 x minute")
+    near(c, h / 2, 1e-6, "30 min = half an hour")
+    near(h, T.TotalValue() / T.ActiveSeconds() * 3600, 1e-6, "hour = value / time")
+end)
+
+test("Auctionator price is used when higher than vendor, minus 5% AH cut", function()
+    Auctionator = { API = { v1 = { GetAuctionPriceByItemID = function(_, id)
+        return ({ [13422] = 7000, [13757] = 2 })[id]
+    end } } }
+    local p, src = P.Get(13422)
+    eq(src, "Auctionator"); eq(p, 6650, "7000 minus 5%")
+    ReelGoldDB.applyAHCut = false
+    eq((P.Get(13422)), 7000, "without AH cut")
+    ReelGoldDB.applyAHCut = true
+    local lp, lsrc = P.Get(13757)
+    eq(lsrc, "Vendor", "AH below vendor falls back to vendor"); eq(lp, 8)
+end)
+
+test("TSM is used when Auctionator has no price", function()
+    TSM_API = { GetCustomPriceValue = function(src, itemString)
+        eq(src, "DBMarket", "TSM source"); return itemString == "i:13893" and 2000 or nil
+    end }
+    local p, src = P.Get(13893)
+    eq(src, "TSM"); eq(p, 1900)
+end)
+
+test("soulbound items always use vendor price", function()
+    local p, src = P.Get(90002)
+    eq(src, "Vendor"); eq(p, 500)
+end)
+
+test("manual price overrides every other source", function()
+    P.SetOverride(13422, 12345)
+    local p, src = P.Get(13422)
+    eq(src, "Manual"); eq(p, 12345)
+    P.SetOverride(13422, nil)
+    eq(select(2, P.Get(13422)), "Auctionator", "override cleared")
+end)
+
+test("vendor-only setting ignores auction addons", function()
+    ReelGoldDB.priceSource = "vendor"
+    eq(select(2, P.Get(13422)), "Vendor")
+    ReelGoldDB.priceSource = "auto"
+end)
+
+test("spot ranking: seeds ranked by value, own zone data replaces the estimate", function()
+    wipe(ReelGoldDB.zoneStats)
+    T.Reset()
+    Mock.mapID = 1447
+    FishFor(39, 15, AZSHARA)
+    local function find(list, zone) for _, e in ipairs(list) do if e.zone == zone then return e end end end
+    local list = R.Rank()
+    eq(find(list, "Azshara").learned, false, "39 catches: still an estimate")
+    FishFor(1, 15, AZSHARA)
+    list = R.Rank()
+    local az = find(list, "Azshara")
+    eq(az.learned, true, "40 catches: uses your data")
+    eq(az.catches, 40)
+    near(az.perHour, T.ItemsValue(ReelGoldDB.zoneStats[1447].items) / ReelGoldDB.zoneStats[1447].seconds * 3600, 1e-6, "per hour from own data")
+    for i = 2, #list do
+        if list[i - 1].canFish == list[i].canFish then
+            check(list[i - 1].perHour >= list[i].perHour, "sorted by gold per hour")
+        end
+    end
+end)
+
+test("new Forever zone (not in seed data) gets ranked from your catches, micro map rolls up", function()
+    Mock.mapID = 99002 -- micro map inside "Riverglades"
+    FishFor(45, 20, { { {90001, 1} } })
+    local found
+    for _, e in ipairs(R.Rank()) do if e.zone == "Riverglades" then found = e end end
+    check(found, "Riverglades listed")
+    eq(found.learned, true)
+    eq(ReelGoldDB.zoneStats[99001].catches, 45, "stored under the zone map, not the micro map")
+    Mock.mapID = 1447
+end)
+
+test("skill filter marks spots you cannot fish yet", function()
+    Mock.skill = { rank = 150, max = 150, mod = 0 }
+    local list = R.Rank()
+    for _, e in ipairs(list) do
+        if e.learned then
+            check(e.canFish, e.zone .. ": your own catches prove you can fish there")
+        elseif e.minSkill and e.minSkill > 150 then
+            check(not e.canFish, e.zone .. " should be too hard")
+        end
+    end
+    check(list[1].canFish, "fishable spots first")
+    Mock.skill = { rank = 300, max = 300, mod = 25 }
+end)
+
+test("day/night and season change which fish the estimate counts", function()
+    local function has(zone, id)
+        for _, e in ipairs(R.Rank()) do
+            if e.zone == zone and not e.learned then
+                for _, l in ipairs(e.loot) do if l.id == id then return true end end
+            end
+        end
+        return false
+    end
+    Mock.hour = 23
+    check(has("Winterspring", 13759), "Nightfin at night"); check(not has("Winterspring", 13760), "no Sunscale at night")
+    Mock.hour = 12
+    check(has("Winterspring", 13760), "Sunscale at day"); check(not has("Winterspring", 13759), "no Nightfin at day")
+    Mock.month = 1
+    check(has("Feralas", 13755), "Winter Squid in January"); check(not has("Feralas", 13756), "no Summer Bass in January")
+    Mock.month = 7
+    check(has("Feralas", 13756), "Summer Bass in July")
+end)
+
+test("context tips react to lure, skill cap and Sunday Extravaganza", function()
+    local function anyTip(pat)
+        for _, t in ipairs(R.ContextTips()) do if t.text:find(pat) then return true end end
+        return false
+    end
+    Mock.lure = false
+    check(anyTip("No lure"), "no-lure warning")
+    Mock.lure = true
+    check(not anyTip("No lure"), "no warning with lure")
+    Mock.pole = nil
+    check(anyTip("No fishing pole"), "no-pole warning")
+    Mock.pole = 6256
+    Mock.skill = { rank = 150, max = 150, mod = 0 }
+    check(anyTip("train Expert"), "skill cap tip")
+    Mock.skill = { rank = 300, max = 300, mod = 25 }
+    Mock.weekday, Mock.hour = 1, 15
+    check(anyTip("running now"), "Extravaganza running")
+    Mock.weekday, Mock.hour = 4, 14
+end)
+
+test("secret values from the client are skipped without errors", function()
+    T.Reset()
+    Mock.secretLinks = true
+    Mock.Catch({ {13422, 1} })
+    Mock.secretLinks = false
+    eq(T.Session().catches, 1, "catch still counted")
+    eq(T.Session().items[13422], nil, "secret item not read")
+end)
+
+test("newer client interface prints a one-time notice", function()
+    Mock.interface = 16002
+    wipe(Mock.printed)
+    Mock.Fire("PLAYER_LOGIN")
+    Mock.Fire("PLAYER_LOGIN")
+    local n = 0
+    for _, line in ipairs(Mock.printed) do if line:find("16002") then n = n + 1 end end
+    eq(n, 1, "notice printed once")
+    Mock.interface = nil
+end)
+
+test("UI smoke test: every tab, button, tooltip and slash command runs", function()
+    T.Reset()
+    FishFor(30, 15, AZSHARA, 7)
+    for _, cmd in ipairs({ "", "spots", "tips", "settings", "session", "hud", "hud", "version", "minimap", "minimap", "help" }) do
+        SlashCmdList.REELGOLD(cmd)
+        Mock.FlushTimers()
+    end
+    check(ReelGoldMainFrame and ReelGoldMainFrame:IsShown(), "main window open")
+    for _, tab in ipairs({ "session", "spots", "tips", "settings" }) do
+        ns.UI.Toggle(tab); ns.UI.Refresh()
+    end
+    local fired = 0
+    for _, f in ipairs(Mock.frames) do
+        for _, s in ipairs({ "OnShow", "OnEnter", "OnLeave", "OnClick", "OnMouseWheel", "OnEnterPressed", "OnDragStart", "OnDragStop", "OnMouseUp" }) do
+            local fn = f.__scripts[s]
+            if fn then fn(f, s == "OnMouseWheel" and -1 or (s == "OnMouseUp" and "RightButton" or "LeftButton")); fired = fired + 1 end
+        end
+        if f.__scripts.OnUpdate then f.__scripts.OnUpdate(f, 1.5); fired = fired + 1 end
+    end
+    Mock.FlushTimers()
+    ns.UI.Toggle("session"); ns.UI.Refresh(); ns.HUD.Refresh()
+    ReelGold_OnAddonCompartmentEnter(nil, UIParent)
+    ReelGold_OnAddonCompartmentClick(nil, "LeftButton")
+    check(fired > 50, "fired " .. fired .. " UI scripts")
+end)
+
+----------------------------------------------------------------------
+-- Example session report (what the Session tab would show)
+----------------------------------------------------------------------
+do
+    local function plain(c, short)
+        return (U.Money(c, short):gsub("|TInterface\\MoneyFrame\\UI%-(%a)%a+Icon[^|]*|t", function(x) return x:lower() end))
+    end
+    ReelGoldDB.priceSource = "auto"
+    T.Reset()
+    Mock.mapID, Mock.hour = 1447, 14
+    FishFor(120, 15, AZSHARA, 6)
+    REPORT("\nExample: 120 catches in Azshara, one every 15 s (mock prices)")
+    REPORT(("  Active time  %s   Catches %d   Coins %s"):format(U.Duration(T.ActiveSeconds()), T.Session().catches, plain(T.Session().money)))
+    for _, unit in ipairs({ "minute", "hour", "custom" }) do
+        ReelGoldDB.timeUnit = unit
+        REPORT(("  %-12s %s"):format(T.UnitLabel(), plain(T.Rate(), true)))
+    end
+    ReelGoldDB.timeUnit = "hour"
+    REPORT("  Top spots right now (effective skill 325):")
+    for i, e in ipairs(R.Rank()) do
+        if i > 6 then break end
+        REPORT(("    %d. %-20s %-12s %s"):format(i, e.zone, plain(e.perHour, true) .. "/h", e.learned and "(your data)" or "(estimate)"))
+    end
+end
+
+REPORT(("\n%d passed, %d failed"):format(passed, failed))
+TEST_FAILED = failed

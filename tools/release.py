@@ -27,7 +27,8 @@ TOC = ROOT / "ReelGold.toc"
 GAMEVER = ROOT / "Data" / "GameVersion.lua"
 CHANGELOG = ROOT / "CHANGELOG.md"
 PACKAGE_IGNORE = {"README.md", "CHANGELOG.md", "tools", ".github", ".git", ".gitignore",
-                  ".editorconfig", ".gitattributes", ".pkgmeta", "dist"}
+                  ".editorconfig", ".gitattributes", ".pkgmeta", "dist",
+                  "tests", "package.json", "package-lock.json", "node_modules"}
 
 
 def read(p):
