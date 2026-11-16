@@ -276,6 +276,144 @@ local function RefreshSpots(p)
 end
 
 ----------------------------------------------------------------------
+-- "For me" tab: best spots for your current skill + next unlock
+----------------------------------------------------------------------
+local BEST_CARDS, CARD_H = 3, 104
+
+local function BuildBest(p)
+    p.header = W.Text(p, "GameFontNormal")
+    p.header:SetPoint("TOPLEFT", 14, -12)
+    p.header:SetPoint("RIGHT", -14, 0)
+    p.sub = W.Text(p, "GameFontDisableSmall")
+    p.sub:SetPoint("TOPLEFT", p.header, "BOTTOMLEFT", 0, -3)
+    p.sub:SetPoint("RIGHT", -14, 0)
+
+    p.cards = {}
+    for i = 1, BEST_CARDS do
+        local c = CreateFrame("Button", nil, p, "BackdropTemplate")
+        c:SetSize(WIDTH - 36, CARD_H)
+        c:SetPoint("TOPLEFT", 12, -48 - (i - 1) * (CARD_H + 4))
+        c:SetBackdrop(W.BACKDROP)
+        c:SetBackdropColor(0.1, 0.1, 0.12, 0.75)
+        c:SetBackdropBorderColor(i == 1 and 1 or 0.35, i == 1 and 0.82 or 0.35, i == 1 and 0 or 0.35, 0.9)
+        c.icon = W.ItemIcon(c, 40)
+        c.icon:SetPoint("TOPLEFT", 8, -8)
+        c.icon:EnableMouse(false)
+        c.title = W.Text(c, "GameFontNormalLarge")
+        c.title:SetPoint("TOPLEFT", c.icon, "TOPRIGHT", 8, -1)
+        c.title:SetPoint("RIGHT", -110, 0)
+        c.title:SetWordWrap(false)
+        c.value = W.Text(c, "GameFontHighlightLarge")
+        c.value:SetPoint("TOPRIGHT", -10, -9)
+        c.value:SetJustifyH("RIGHT")
+        c.spot = W.Text(c, "GameFontHighlightSmall")
+        c.spot:SetPoint("TOPLEFT", c.title, "BOTTOMLEFT", 0, -4)
+        c.spot:SetPoint("RIGHT", -10, 0)
+        c.spot:SetWordWrap(false)
+        c.loot = {}
+        for j = 1, 4 do
+            local ic = W.ItemIcon(c, 20)
+            ic:SetPoint("TOPLEFT", 56 + (j - 1) * 92, -56)
+            ic.pct = W.Text(c, "GameFontHighlightSmall")
+            ic.pct:SetPoint("LEFT", ic, "RIGHT", 4, 0)
+            c.loot[j] = ic
+        end
+        c.tip = W.Text(c, "GameFontHighlightSmall")
+        c.tip:SetPoint("BOTTOMLEFT", 10, 8)
+        c.tip:SetPoint("RIGHT", -10, 0)
+        c.tip:SetTextColor(0.2, 0.8, 1)
+        c.tip:SetWordWrap(false)
+        c:SetScript("OnEnter", SpotTooltip)
+        c:SetScript("OnLeave", GameTooltip_Hide)
+        p.cards[i] = c
+    end
+
+    local goal = W.Panel(p, WIDTH - 36, 66)
+    goal:SetPoint("TOPLEFT", 12, -48 - BEST_CARDS * (CARD_H + 4))
+    goal:SetBackdropBorderColor(0.2, 0.8, 0.2, 0.8)
+    goal.icon = goal:CreateTexture(nil, "ARTWORK")
+    goal.icon:SetSize(30, 30)
+    goal.icon:SetPoint("LEFT", 10, 0)
+    goal.icon:SetTexture(ns.Icons.book)
+    goal.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    goal.text = W.Text(goal, "GameFontHighlightSmall")
+    goal.text:SetPoint("LEFT", goal.icon, "RIGHT", 10, 0)
+    goal.text:SetPoint("RIGHT", -10, 0)
+    goal.text:SetJustifyV("MIDDLE")
+    goal.text:SetHeight(58)
+    p.goal = goal
+
+    p.empty = W.Text(p, "GameFontHighlight")
+    p.empty:SetPoint("TOPLEFT", 18, -60)
+    p.empty:SetPoint("RIGHT", -18, 0)
+end
+
+local function RefreshBest(p)
+    local r = ns.Recommend.ForSkill(BEST_CARDS)
+    local _, currentZone = ns.C.GetPlayerMap()
+    if not r.rank then
+        p.header:SetText(U.Icon(ns.Icons.fishing) .. " Best spots for your skill")
+        p.sub:SetText("")
+        p.empty:SetText("You haven't learned Fishing yet. Visit a fishing trainer in any capital or starting area, then come back here.")
+        p.empty:Show()
+        for _, c in ipairs(p.cards) do c:Hide() end
+        p.goal:Hide()
+        return
+    end
+    p.empty:Hide()
+    local bonus = (r.mod and r.mod > 0) and (" |cff33ff33(+" .. r.mod .. " from pole, lure and gear)|r") or ""
+    p.header:SetText(U.Icon(ns.Icons.fishing) .. (" Best spots for your skill: |cffffffff%d|r%s"):format(r.skill, bonus))
+    p.sub:SetText(("Fishing %d/%d.  Ranked by gold per hour with your prices; hover a card for details."):format(r.rank, r.maxRank or 0))
+
+    for i, c in ipairs(p.cards) do
+        local e = r.best[i]
+        c.entry = e
+        if e then
+            if e.loot[1] then c.icon:SetItem(e.loot[1].id) else c.icon:SetTex(ns.Icons.fishing) end
+            local here = (e.zone == currentZone) and "  |cff33ff33(you are here)|r" or ""
+            c.title:SetText(("%d. %s%s"):format(i, e.zone, here))
+            c.value:SetText(U.Money(e.perHour, true) .. "|cff999999/h|r")
+            local parts = { e.spot }
+            if e.minSkill then parts[#parts + 1] = "skill " .. e.minSkill end
+            parts[#parts + 1] = e.learned and "|cff33ff33your data|r" or "|cff999999estimate|r"
+            c.spot:SetText(table.concat(parts, "  ·  "))
+            for j, ic in ipairs(c.loot) do
+                local l = e.loot[j]
+                if l then
+                    ic:SetItem(l.id)
+                    ic.pct:SetText(math.floor(l.share * 100 + 0.5) .. "%")
+                    ic:Show(); ic.pct:Show()
+                else
+                    ic:Hide(); ic.pct:Hide()
+                end
+            end
+            c.tip:SetText(e.tip or "")
+            c:Show()
+        else
+            c:Hide()
+        end
+    end
+
+    if #r.best == 0 then
+        p.empty:SetText("Your skill is below every listed money spot. Level up in any starting-zone lake or river "
+            .. "(every catch gives skill), then the first spots open up.")
+        p.empty:Show()
+    end
+
+    local g = r.nextGoal
+    if g then
+        local how = ns.Recommend.BoostFor(r.gap)
+        local train = (r.maxRank and r.rank >= r.maxRank and r.maxRank < 300) and " Train your next fishing rank first." or ""
+        p.goal.text:SetText(("|cff33ff33Next goal:|r reach |cffffffff%d|r effective skill (%d more) to unlock |cffffd100%s|r, about %s per hour (+%s)."
+            .. "%s%s"):format(g.minSkill, r.gap, g.zone, U.Money(g.perHour, true), U.Money(r.gain, true),
+            how and ("\nQuickest way: " .. how .. ".") or "\nKeep fishing to raise your skill.", train))
+    else
+        p.goal.text:SetText("|cff33ff33Top of the table:|r no better-paying spot needs more skill than you have. Fish here, and your own catches will refine the ranking.")
+    end
+    p.goal:Show()
+end
+
+----------------------------------------------------------------------
 -- Tips tab
 ----------------------------------------------------------------------
 local function BuildTips(p)
@@ -464,6 +602,7 @@ end
 ----------------------------------------------------------------------
 local TABS = {
     { key = "session",  label = "Session",  icon = ns.Icons.coin,  build = BuildSession,  refresh = RefreshSession },
+    { key = "best",     label = "For me",   icon = ns.Icons.pole,  build = BuildBest,     refresh = RefreshBest },
     { key = "spots",    label = "Spots",    icon = ns.Icons.map,   build = BuildSpots,    refresh = RefreshSpots },
     { key = "tips",     label = "Tips",     icon = ns.Icons.book,  build = BuildTips,     refresh = RefreshTips },
     { key = "settings", label = "Settings", icon = ns.Icons.gear,  build = BuildSettings, refresh = RefreshSettings },
@@ -510,7 +649,8 @@ local function Create()
 
     local prev
     for _, t in ipairs(TABS) do
-        local b = W.Button(frame, t.label, 104, 24, function() SelectTab(t.key) end)
+        local tabW = math.floor((WIDTH - 28 - 4 * (#TABS - 1)) / #TABS)
+        local b = W.Button(frame, t.label, tabW, 24, function() SelectTab(t.key) end)
         b:SetText("   " .. t.label)
         local ic = b:CreateTexture(nil, "OVERLAY")
         ic:SetSize(16, 16)

@@ -54,15 +54,15 @@ Core/Pricing.lua      manual override > Auctionator > TSM > vendor; 5% AH cut op
 Core/Tracker.lua      session + per-zone stats from fishing loot only
 Core/Recommend.lua    spot ranking + context tips
 UI/Widgets.lua        tiny widget factory on long-lived Blizzard templates
-UI/MainFrame.lua      470x520 window: Session / Spots / Tips / Settings tabs (paged rows, no scroll frames)
-UI/HUD.lua            210x62 movable tracker
+UI/MainFrame.lua      470x520 window: Session / For me / Spots / Tips / Settings tabs (paged rows, no scroll frames)
+UI/HUD.lua            222x62 movable tracker with close (X) button; X sets hud.shown=false
 UI/MinimapButton.lua  library-free minimap button + Addon Compartment functions
 UI/OptionsPanel.lua   Options -> AddOns page (Settings.RegisterCanvasLayoutCategory), registered on PLAYER_LOGIN
 Core/Init.lua         saved vars, MIGRATIONS, events, slash commands (loaded last)
 ```
 Saved variables: `ReelGoldDB` (account: settings, priceOverrides, zoneStats keyed by
 uiMapID) and `ReelGoldCharDB` (character: current session).
-Slash: `/rgold` or `/reelgold` with `show|session|spots|tips|settings|options|hud|reset|minimap|version`.
+Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|options|hud|reset|minimap|version`.
 
 ## Key behaviours and why
 - **Loot:** `LOOT_READY` and `LOOT_OPENED` both fire; a `handled` flag dedupes per
@@ -76,6 +76,8 @@ Slash: `/rgold` or `/reelgold` with `show|session|spots|tips|settings|options|hu
   loot. After `minLearnCatches` (40) in a zone, YOUR data replaces the estimate,
   and zones not in the seed data (new Forever zones) are ranked automatically.
   A zone with your own data is always `canFish` (fix in 1.0.1).
+- **For me tab** (`R.ForSkill`): top 3 `canFish` spots; next goal = locked spot paying more than
+  your best, closest `minSkill` first; `R.BoostFor(gap)` suggests a lure for gaps <= 100.
 - **Micro maps** roll up to their parent zone in `C.GetPlayerMap`; dungeon maps don't.
 - **Version notice:** if the client interface is newer than TESTED_INTERFACE, a one-time chat notice.
 
@@ -139,7 +141,7 @@ Repo mode copies only TOC-listed files + LICENSE; bundle mode copies `.\ReelGold
 design, no Blizzard art), `screenshots/*.png` (1280x720). Screenshots are a
 labelled MOCKUP rendered by `python tools/curseforge/make_screenshots.py`
 (headless Edge/Chrome, icons from the Wowhead CDN); replace them with real
-in-game screenshots when available. Re-render the logo with headless Edge
+in-game screenshots when available. They don't show the For me tab or the HUD close button yet. Re-render the logo with headless Edge
 (`--screenshot --window-size=400,400` on an HTML page embedding logo.svg).
 `docs/` is excluded from addon zips (`.pkgmeta` + `PACKAGE_IGNORE`).
 

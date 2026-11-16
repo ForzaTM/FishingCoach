@@ -115,7 +115,7 @@ SlashCmdList.REELGOLD = function(msg)
     local cmd = strlower(strtrim(msg or ""))
     if cmd == "" or cmd == "show" then
         ns.UI.Toggle()
-    elseif cmd == "spots" or cmd == "tips" or cmd == "settings" or cmd == "session" then
+    elseif cmd == "spots" or cmd == "tips" or cmd == "settings" or cmd == "session" or cmd == "best" then
         ns.UI.Toggle(cmd)
     elseif cmd == "hud" then
         ns.HUD.Toggle()
@@ -132,6 +132,6 @@ SlashCmdList.REELGOLD = function(msg)
         U.Print(("v%s, data v%d (%s), checked on client %s / interface %d")
             :format(ns.version, gv.DATA_VERSION, gv.DATA_DATE, gv.TESTED_CLIENT, gv.TESTED_INTERFACE))
     else
-        U.Print("Commands: /rgold [show | session | spots | tips | settings | options | hud | reset | minimap | version]")
+        U.Print("Commands: /rgold [show | session | best | spots | tips | settings | options | hud | reset | minimap | version]")
     end
 end

@@ -99,6 +99,53 @@ function R.Rank()
     return list, skill, maxRank
 end
 
+-- Cheapest common way to cover a skill gap (Forever lure/pole values).
+local BOOSTS = {
+    { 25,  "a Shiny Bauble (+25)" },
+    { 50,  "Nightcrawlers or an Aquadynamic Fish Lens (+50)" },
+    { 75,  "Bright Baubles or a Flesh Eating Worm (+75)" },
+    { 100, "an Aquadynamic Fish Attractor (+100)" },
+}
+function R.BoostFor(gap)
+    for _, b in ipairs(BOOSTS) do
+        if gap <= b[1] then return b[2] end
+    end
+end
+
+-- Best spots for the player's current effective skill.
+-- Returns { skill, rank, mod, maxRank, best = { up to `count` fishable spots },
+--           nextGoal = spot worth unlocking or nil, gap = skill points missing }
+function R.ForSkill(count)
+    count = count or 3
+    local rank, maxRank, mod = ns.C.GetFishingSkill()
+    local result = { rank = rank, maxRank = maxRank, mod = mod or 0, best = {} }
+    if not rank then return result end
+    local list, skill = R.Rank()
+    result.skill = skill
+
+    local bestValue = 0
+    for _, e in ipairs(list) do
+        if e.canFish and #result.best < count then
+            result.best[#result.best + 1] = e
+            bestValue = math.max(bestValue, e.perHour)
+        end
+    end
+    -- Next goal: a locked spot that pays more than your best one; closest unlock first.
+    for _, e in ipairs(list) do
+        if not e.canFish and e.minSkill and e.perHour > bestValue then
+            local n = result.nextGoal
+            if not n or e.minSkill < n.minSkill or (e.minSkill == n.minSkill and e.perHour > n.perHour) then
+                result.nextGoal = e
+            end
+        end
+    end
+    if result.nextGoal then
+        result.gap = result.nextGoal.minSkill - skill
+        result.gain = result.nextGoal.perHour - bestValue
+    end
+    return result
+end
+
 ----------------------------------------------------------------------
 -- Context tips (shown first on the Tips tab and in the HUD tooltip)
 ----------------------------------------------------------------------

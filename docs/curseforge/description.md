@@ -14,6 +14,7 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - Coins looted from fishing are included.
 
 ### Best fishing spots for you
+- **For me** tab: your top 3 spots for your current skill, what you catch there and a tip, plus your **next goal**: the better-paying spot you can unlock next, how many skill points you need and the quickest lure to get there.
 - Spots ranked by **expected gold per hour with your current prices**.
 - Shows the skill each spot needs and marks the ones you can fish right now.
 - Hover a spot for its main catches, catch rates and a tip.
@@ -34,13 +35,13 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - Set your own price for any item: drag it onto the price box.
 
 ### Small and out of the way
-- Compact HUD you can drag anywhere. It shows only while a fishing pole is equipped (optional).
+- Compact HUD you can drag anywhere, with a close button. It shows only while a fishing pole is equipped (optional).
 - Minimap button and Addon Compartment entry.
 - Every icon and item name comes straight from the game client, in your language.
 
 ## Commands
 `/rgold` (or `/reelgold`) opens the window. Add one of:
-- `spots`, `tips`, `settings` or `session` to open that tab
+- `best`, `spots`, `tips`, `settings` or `session` to open that tab
 - `hud` to show or hide the HUD
 - `reset` to start a new session
 - `minimap` to show or hide the minimap button

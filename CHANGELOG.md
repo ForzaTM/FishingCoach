@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- New "For me" tab: your top 3 spots for your current skill with catches and tips, plus the next better-paying spot to unlock and the quickest way to get the skill. `/rgold best` opens it.
+- The HUD has a close button (X). Show it again with `/rgold hud`, a right-click on the minimap button, or in Settings.
 - New ReelGold page in Options -> AddOns with the main settings and an "Open ReelGold" button. `/rgold options` opens it.
 - Spots list: no empty separator for zones known only from your own data.
 

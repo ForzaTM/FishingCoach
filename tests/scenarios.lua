@@ -280,6 +280,64 @@ test("newer client interface prints a one-time notice", function()
     Mock.interface = nil
 end)
 
+test("HUD has a close button that hides it until shown again", function()
+    ReelGoldDB.hud.shown, ReelGoldDB.hud.onlyWithPole = true, true
+    Mock.pole = 6256
+    ns.HUD.UpdateVisibility()
+    local hud = ns.HUD.GetFrame()
+    check(hud and hud:IsShown(), "HUD visible with a pole")
+    local close
+    for _, f in ipairs(Mock.frames) do
+        if f.__parent == hud and f.__kind == "Button" then close = f end
+    end
+    check(close and close.__scripts.OnClick, "close button exists on the HUD")
+    close.__scripts.OnClick(close, "LeftButton")
+    check(not hud:IsShown(), "HUD hidden after clicking X")
+    eq(ReelGoldDB.hud.shown, false, "stays hidden (saved)")
+    Mock.Fire("PLAYER_EQUIPMENT_CHANGED")
+    check(not hud:IsShown(), "re-equipping the pole does not bring it back")
+    SlashCmdList.REELGOLD("hud")
+    check(hud:IsShown(), "/rgold hud shows it again")
+end)
+
+test("'For me' tab: best fishable spots and the next spot worth unlocking", function()
+    local savedStats = ReelGoldDB.zoneStats
+    ReelGoldDB.zoneStats = {}
+    Mock.skill = { rank = 290, max = 300, mod = 0 }
+    P.SetOverride(13422, 50000) -- make Stonescale Eel (Feralas 300 / Azshara 330) the best money
+    local r = R.ForSkill(3)
+    eq(r.skill, 290, "effective skill")
+    eq(#r.best, 3, "three fishable spots")
+    for i, e in ipairs(r.best) do
+        check(e.canFish, e.zone .. " must be fishable")
+        if i > 1 then check(r.best[i - 1].perHour >= e.perHour, "sorted by gold per hour") end
+    end
+    check(r.nextGoal, "a next goal exists")
+    eq(r.nextGoal.zone, "Feralas", "closest better-paying unlock")
+    eq(r.gap, 10, "10 skill missing")
+    check(r.gain > 0, "unlock pays more")
+    check(R.BoostFor(r.gap):find("Shiny Bauble"), "a +25 lure covers 10 points")
+    eq(R.BoostFor(150), nil, "too big for a lure")
+
+    Mock.skill = { rank = 330, max = 375, mod = 25 }
+    r = R.ForSkill(3)
+    eq(r.nextGoal, nil, "nothing left to unlock at 355")
+
+    Mock.skill = { rank = 10, max = 75, mod = 0 }
+    r = R.ForSkill(3)
+    eq(#r.best, 0, "beginner: no money spot yet")
+    eq(r.nextGoal and r.nextGoal.minSkill, 75, "first unlock at 75")
+    ns.UI.Toggle("best"); ns.UI.Refresh()
+
+    Mock.skill = nil
+    eq(R.ForSkill(3).rank, nil, "fishing not learned")
+    ns.UI.Refresh()
+
+    Mock.skill = { rank = 300, max = 300, mod = 25 }
+    P.SetOverride(13422, nil)
+    ReelGoldDB.zoneStats = savedStats
+end)
+
 test("ReelGold has a page in Options -> AddOns", function()
     eq(#Mock.settings.addonCategories, 1, "registered exactly once (PLAYER_LOGIN fired several times)")
     local cat = Mock.settings.addonCategories[1]
@@ -351,6 +409,15 @@ do
         REPORT(("  %-12s %s"):format(T.UnitLabel(), plain(T.Rate(), true)))
     end
     ReelGoldDB.timeUnit = "hour"
+    local fm = R.ForSkill(3)
+    REPORT(("  'For me' tab at effective skill %d:"):format(fm.skill))
+    for i, e in ipairs(fm.best) do
+        REPORT(("    %d. %-20s %s/h"):format(i, e.zone, plain(e.perHour, true)))
+    end
+    if fm.nextGoal then
+        REPORT(("    Next goal: %d skill (%d more) unlocks %s, +%s/h; quickest: %s"):format(
+            fm.nextGoal.minSkill, fm.gap, fm.nextGoal.zone, plain(fm.gain, true), R.BoostFor(fm.gap) or "keep fishing"))
+    end
     REPORT("  Top spots right now (effective skill 325):")
     for i, e in ipairs(R.Rank()) do
         if i > 6 then break end

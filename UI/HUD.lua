@@ -6,8 +6,10 @@ local HUD = {}
 ns.HUD = HUD
 local f
 
+function HUD.GetFrame() return f end
+
 local function Create()
-    f = W.Panel(UIParent, 210, 62)
+    f = W.Panel(UIParent, 222, 62)
     f:SetFrameStrata("LOW")
     f:SetClampedToScreen(true)
     f:SetMovable(true)
@@ -31,6 +33,23 @@ local function Create()
     f.line2:SetPoint("LEFT", f.icon, "RIGHT", 8, 0)
     f.line3 = W.Text(f, "GameFontHighlightSmall")
     f.line3:SetPoint("BOTTOMLEFT", f.icon, "BOTTOMRIGHT", 8, -2)
+    for _, fs in ipairs({ f.rate, f.line2, f.line3 }) do
+        fs:SetPoint("RIGHT", f, "RIGHT", -22, 0)
+        fs:SetWordWrap(false)
+    end
+
+    -- Close button (X) in the top right corner.
+    f.close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+    f.close:SetSize(22, 22)
+    f.close:SetPoint("TOPRIGHT", 1, 1)
+    f.close:SetScript("OnClick", function() HUD.Close() end)
+    f.close:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Hide HUD", 1, 1, 1)
+        GameTooltip:AddLine("Show it again with /rgold hud, a right-click on the minimap button, or in Settings.", nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    f.close:SetScript("OnLeave", GameTooltip_Hide)
 
     f:SetScript("OnMouseUp", function(_, button)
         if button == "RightButton" then ns.UI.Toggle("session") end
@@ -85,6 +104,13 @@ function HUD.UpdateVisibility()
     HUD.Refresh()
 end
 
+
+function HUD.Close()
+    ns.db.hud.shown = false
+    HUD.UpdateVisibility()
+    U.Print("HUD hidden. Show it again with /rgold hud or a right-click on the minimap button.")
+    if ns.UI then ns.UI.Refresh() end
+end
 
 function HUD.Toggle()
     ns.db.hud.shown = not ns.db.hud.shown
