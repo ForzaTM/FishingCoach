@@ -1,4 +1,6 @@
-# Fishing Coach: project context
+# Fishing Coach (formerly ReelGold): project context
+
+> **Resuming work?** Jump to "Status and next steps (handoff)" at the end of this file.
 
 Context for anyone (human or AI) making future updates. Read this first, then
 `README.md` for user-facing docs. Keep this file current when decisions change.
@@ -191,12 +193,60 @@ in-game screenshots when available. They don't show the For me / How to use tabs
 (`--screenshot --window-size=400,400` on an HTML page embedding logo.svg).
 `docs/` is excluded from addon zips (`.pkgmeta` + `PACKAGE_IGNORE`).
 
-## Open ideas / next steps
-- First real in-game test (`/fcoach`, `/reload` after changes); fix what breaks.
-- Verify Forever uiMapIDs, zone skill requirements and fish in new zones; update Data/.
-- Owner creates the CurseForge project (see docs/curseforge/project-settings.md), sets the
-  `CF_API_KEY` secret on their own (never handle the key), then add `## X-Curse-Project-ID:` and release.
-- Offered, not built: a browser UI preview driven by the mock (record SetPoint/SetSize/text
-  and render it), as a layout check without the game.
-- Local reference pages (outside the repo, not maintained): `E:\ClaudeWork\FishingCoach-ui-preview.html`
-  (hand-made mockup) and `E:\ClaudeWork\FishingCoach-icon-gallery.html` (icons used).
+## Status and next steps (handoff, end of 2026-11-16)
+
+Start here when resuming. Read the rest of this file for details.
+
+### Where things stand
+- Code: `main` at github.com/ForzaTM/FishingCoach, everything pushed, CI green.
+  Tests: `npm test` (32 Lua scenarios) and `npm run test:installer` (10 PowerShell).
+- Released: only v1.0.0 and v1.0.1 (as "ReelGold"). Everything below is UNRELEASED
+  (see CHANGELOG "Unreleased"): rename to Fishing Coach, Options page, logo, HUD close button,
+  For me tab, gear checklist with owned/alt highlights, How to use tab, Auctionator auto
+  refresh + Refresh prices button, catch log AH prices + AH cut toggle in Settings,
+  update banner, click-to-show-on-map marker. DATA_VERSION is 2.
+- Installed in the owner's game (`D:\Games\World of Warcraft\_forever_\Interface\AddOns\FishingCoach`)
+  with the latest code; the installer migrated their old ReelGold saved variables.
+- Owner tested in game and reported "all good" BEFORE these were added, so they still need
+  an in-game check: rename/migration, map marker (X position on Forever maps), gear
+  highlights + alts, How to use first-launch, Options page tab width ("How to use" at 560 px).
+- The local folder is still `E:\ClaudeWork\ReelGold` (Windows refused the rename while the
+  session had it open). Owner may rename it to `E:\ClaudeWork\FishingCoach`; check both.
+
+### CurseForge publishing (blocked on the owner)
+1. DONE: `CF_API_KEY` secret set on ForzaTM/FishingCoach (survived the repo rename).
+2. TODO (owner): create the CurseForge project named **Fishing Coach** using
+   `docs/curseforge/project-settings.md` + `description.md` + `logo.png`; real in-game
+   screenshots preferred (the mockups in `docs/curseforge/screenshots/` lack the newest tabs).
+3. TODO (owner): after moderation approval, send the numeric Project ID.
+4. Then (Claude): add `## X-Curse-Project-ID: <id>` to `FishingCoach.toc`, turn CHANGELOG
+   "Unreleased" into `## 1.1.0 (date)`, run both test suites, commit, ASK the owner, then
+   `git tag v1.1.0 && git push origin main v1.1.0`. Watch the Release workflow; verify the
+   CurseForge file, the GitHub release zip (`FishingCoach-v1.1.0-forever.zip`) and the
+   Windows installer zip. If CurseForge rejects the game version, the owner uploads the
+   first zip by hand and picks the Forever version.
+
+### Things that are unverified or approximate
+- Seed spot coordinates (`x`, `y` in Data/Locations.lua) are approximate, from classic maps;
+  only Booty Bay and Forgotten Pools were cross-checked with Forever data.
+- Gloves fishing enchant ID 845 (classic); Fishing Hut blueprint source undocumented.
+- Interface 16001 is confirmed by Auctionator 347's TOC; client 1.60.1.
+
+### Owner preferences
+- Ask clarifying questions when unsure; confirm before anything public (tags, releases,
+  repo changes beyond what was asked). Never handle API keys.
+- Owner chose: no guild/group addon messages (Fishing Coach sends nothing), AH cut toggle
+  lives in Settings, name "Fishing Coach".
+
+### Tooling gotcha for Claude sessions
+- Bash heredocs in this environment can collapse `\\` to `\` and turn `\b` into a backspace
+  character. Write Lua/PowerShell/JS that contains backslashes with the Write/Edit tools, or
+  build strings with `chr(92)` in Python. Lua 5.3 (Fengari) fails on bad escapes, so
+  `npm test` catches it in Lua files.
+
+### Ideas not built yet
+- Browser UI preview driven by the mock (record SetPoint/SetSize/text and render it).
+- Verify Forever zone skill requirements and fish in the new zones (Riverglades, Mount Hyjal,
+  Shen'dralas, Zephras Isle); add seed spots once known.
+- Local reference pages outside the repo (not maintained):
+  `E:\ClaudeWork\ReelGold-ui-preview.html` and `E:\ClaudeWork\ReelGold-icon-gallery.html`.
