@@ -1,9 +1,12 @@
 # Changelog
 
 ## Unreleased
-- Windows installer: finds WoW: Forever on your PC and installs, updates or removes ReelGold.
-- Spots where you already have your own catch data are no longer marked as too hard for your skill.
+
+## 1.0.1 (2026-11-16)
+- Fix: spots where you already have your own catch data are no longer marked as too hard for your skill.
+- New Windows installer (ReelGold-1.0.1-windows-installer.zip): finds WoW: Forever on your PC and installs, updates or removes ReelGold.
 - Added an offline test suite (`npm test`) that runs the addon against a mocked WoW API.
+- Releases now run the tests first and attach the Windows installer.
 
 ## 1.0.0 (2026-11-16)
 - First release for WoW: Forever 1.60.1 (interface 16001).
