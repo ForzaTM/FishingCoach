@@ -10,7 +10,7 @@ ns.GameVersion = {
     TESTED_CLIENT = "1.60.1",
     -- Bump DATA_VERSION whenever Fish/Locations/Tips data changes, so the
     -- addon can tell users their spot estimates were refreshed.
-    DATA_VERSION = 1,
+    DATA_VERSION = 2,
     DATA_DATE = "2026-11-16",
     -- Where players get updates (shown in Settings; addons can't open links).
     UPDATE_URL = "https://github.com/ForzaTM/FishingCoach/releases",

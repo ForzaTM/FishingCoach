@@ -200,6 +200,9 @@ SlashCmdList.FISHINGCOACH = function(msg)
     elseif cmd == "minimap" then
         ns.db.minimap.hide = not ns.db.minimap.hide
         ns.Minimap.Update()
+    elseif cmd == "clearmap" then
+        ns.MapPin.Clear()
+        U.Print("Map marker removed.")
     elseif cmd == "options" or cmd == "config" then
         ns.Options.Open()
     elseif cmd == "prices" or cmd == "refresh" then

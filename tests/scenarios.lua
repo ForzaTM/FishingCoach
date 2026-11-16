@@ -597,6 +597,97 @@ test("How to use tab opens on the very first launch only", function()
     eq(FishingCoachDB.lastTab, "guide", "/fcoach guide opens it")
 end)
 
+test("click a spot: world map opens on the zone with an X at the spot", function()
+    local MP = ns.MapPin
+    local function lastPrint() return Mock.printed[#Mock.printed] or "" end
+    local function find(zone)
+        for _, e in ipairs(R.Rank()) do if e.zone == zone then return e end end
+    end
+    WorldMapFrame:Hide()
+    Mock.inCombat = false
+
+    -- 1. Your own catches pin the marker to where you actually fish.
+    Mock.mapID, Mock.pos = 1437, { 0.12, 0.56 }
+    FishFor(6, 15, { { {6358, 1} } })
+    Mock.pos = { 0.30, 0.30 }
+    FishFor(2, 15, { { {6358, 1} } }) -- a couple of catches elsewhere don't move the favourite
+    local fx, fy, n = T.FavouriteSpot(FishingCoachDB.zoneStats[1437])
+    near(fx, 4.5 / 40, 1e-9, "favourite cell x"); near(fy, 22.5 / 40, 1e-9, "favourite cell y"); eq(n, 6)
+    local wet = find("Wetlands")
+    eq(wet.posSource, "yours", "Wetlands uses your spot")
+
+    -- Click the Wetlands row on the Spots tab (high Blackmouth price puts it on top).
+    P.SetOverride(6358, 5000000); Mock.FlushTimers()
+    ns.UI.Toggle("spots"); ns.UI.Refresh()
+    local row
+    for _, f in ipairs(Mock.frames) do
+        if f.entry and f.entry.zone == "Wetlands" and f.__scripts.OnClick and f:IsShown() then row = f end
+    end
+    check(row, "Wetlands row on the Spots tab")
+    wipe(Mock.printed)
+    row.__scripts.OnClick(row, "LeftButton"); Mock.FlushTimers()
+    check(WorldMapFrame:IsShown() and WorldMapFrame:GetMapID() == 1437, "world map opened on Wetlands")
+    local m = MP.GetMarker()
+    check(m and m:IsShown(), "X shown")
+    eq(m:GetParent(), WorldMapFrame.canvas, "X drawn on the map canvas")
+    local pt = m.__point
+    eq(pt[1], "CENTER"); eq(pt[3], "TOPLEFT")
+    near(pt[4], 1000 * 4.5 / 40, 1e-6, "x position on canvas"); near(pt[5], -667 * 22.5 / 40, 1e-6, "y position on canvas")
+    check(lastPrint():find("Marked Wetlands") and lastPrint():find("your spot"), lastPrint())
+
+    -- 2. Switching the map to another zone hides the X; back again shows it.
+    WorldMapFrame:SetMapID(1413)
+    check(not m:IsShown(), "hidden on another map")
+    WorldMapFrame:SetMapID(1437)
+    check(m:IsShown(), "back on Wetlands")
+
+    -- 3. A seed spot with an approximate position (no catches there).
+    local tan = find("Tanaris")
+    eq(tan.posSource, "approximate")
+    MP.Show(tan); Mock.FlushTimers()
+    eq(WorldMapFrame:GetMapID(), 1446, "map switched to Tanaris")
+    check(m:IsShown(), "X on Tanaris")
+    check(lastPrint():find("approximate"), lastPrint())
+
+    -- 4. A spot without any known position: map opens, no X, helpful message.
+    local hint = find("The Hinterlands")
+    eq(hint.x, nil, "no guessed position")
+    MP.Show(hint); Mock.FlushTimers()
+    eq(WorldMapFrame:GetMapID(), 1425, "map opened on the Hinterlands")
+    check(not m:IsShown(), "no X without a position")
+    check(lastPrint():find("Fish there once"), lastPrint())
+
+    -- 5. In combat the map can't be opened: the X is kept for later.
+    WorldMapFrame:Hide()
+    Mock.inCombat = true
+    MP.Show(tan); Mock.FlushTimers()
+    check(not WorldMapFrame:IsShown(), "map not opened in combat")
+    check(lastPrint():find("after combat"), lastPrint())
+    Mock.inCombat = false
+    WorldMapFrame.__mapID = 1446; WorldMapFrame:Show()
+    check(m:IsShown(), "X appears when the player opens the map later")
+
+    -- 6. Right-click removes it; /fcoach clearmap too.
+    m.__scripts.OnClick(m, "RightButton")
+    check(not m:IsShown() and MP.GetTarget() == nil, "removed by right-click")
+    MP.Show(tan); Mock.FlushTimers()
+    SlashCmdList.FISHINGCOACH("clearmap")
+    check(MP.GetTarget() == nil, "removed by /fcoach clearmap")
+
+    -- For me cards are clickable too.
+    ns.UI.Toggle("best"); ns.UI.Refresh()
+    local card
+    for _, f in ipairs(Mock.frames) do
+        if f.entry and f.loot and f.__scripts.OnClick and f:IsShown() then card = f end
+    end
+    check(card, "For me card")
+    card.__scripts.OnClick(card, "LeftButton"); Mock.FlushTimers()
+    eq(MP.GetTarget().zone, card.entry.zone, "card click marks its zone")
+    MP.Clear(); WorldMapFrame:Hide()
+    P.SetOverride(6358, nil)
+    Mock.pos, Mock.mapID = nil, 1447
+end)
+
 test("HUD has a close button that hides it until shown again", function()
     FishingCoachDB.hud.shown, FishingCoachDB.hud.onlyWithPole = true, true
     Mock.pole = 6256

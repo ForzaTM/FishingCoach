@@ -14,6 +14,7 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - Coins looted from fishing are included.
 
 ### Best fishing spots for you
+- **Click any spot to see it on the world map:** a red X marks the place, using where you actually catch fish once you've fished there.
 - **For me** tab: your top 3 spots for your current skill, what you catch there and a tip, plus your **next goal**: the better-paying spot you can unlock next, how many skill points you need and the quickest lure to get there.
 - Spots ranked by **expected gold per hour with your current prices**.
 - Shows the skill each spot needs and marks the ones you can fish right now.

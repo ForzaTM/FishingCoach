@@ -89,6 +89,12 @@ Slash: `/fcoach` or `/fishingcoach` with `show|guide|session|best|spots|tips|set
   Hut blueprint drop source was undocumented on 2026-11-16.
 - **First launch:** `seenGuide` false -> PLAYER_LOGIN opens the How to use tab after 3 s; also the
   first `/fcoach` without a tab. Set true when the guide tab is shown.
+- **Map marker** (`UI/MapPin.lua`): own red X on `WorldMapFrame:GetCanvas()` (Forever's
+  `C_Map.SetUserWaypoint` is unreliable, per the Forever Dungeon Journal addon); position = map
+  fraction x canvas size, scaled 1/canvas scale; hooks OnShow/OnHide + `hooksecurefunc OnMapChanged`;
+  opens the map with `OpenWorldMap` (never in combat). Positions: favourite 40x40 cell of your
+  catches (`zoneStats[mapID].cells`, `Tracker.FavouriteSpot`), else approximate seed x/y (only for
+  spots near a known landmark), else no X. All 15 seed mapIDs are confirmed used by Forever.
 - **Policy guard:** `tests/run.js` fails if addon code calls message/cast/binding/AH-action APIs.
 - **AH cut toggle:** only on the Settings tab and Options page (owner moved it off the Session tab).
 - **Loot:** `LOOT_READY` and `LOOT_OPENED` both fire; a `handled` flag dedupes per

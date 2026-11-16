@@ -199,6 +199,10 @@ local function SpotTooltip(row)
         GameTooltip:AddLine(" ")
         GameTooltip:AddLine(e.tip, 0.2, 0.8, 1, true)
     end
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine(e.posSource == "yours" and "|cff33ff33Click: show your fishing spot on the map|r"
+        or e.x and "Click: show on the map (approximate area)"
+        or "Click: open this zone's map", 1, 0.82, 0)
     GameTooltip:Show()
 end
 
@@ -233,6 +237,7 @@ local function BuildSpots(p)
         row.sub:SetPoint("RIGHT", -8, 0)
         row.sub:SetWordWrap(false)
         row:SetScript("OnEnter", SpotTooltip)
+        row:SetScript("OnClick", function(self) if self.entry then ns.MapPin.Show(self.entry) end end)
         row:SetScript("OnLeave", GameTooltip_Hide)
         p.rows[i] = row
     end
@@ -240,7 +245,7 @@ local function BuildSpots(p)
     p.pager:Anchor("TOPRIGHT", p, "TOPRIGHT", -14, -32)
 
     local note = W.Text(p, "GameFontDisableSmall",
-        "Values update with your price source. Zones you fish get ranked from your own catches.")
+        "Click a spot to show it on the world map. Zones you fish get ranked (and pinned) from your own catches.")
     note:SetPoint("BOTTOMLEFT", 14, 14)
     note:SetPoint("RIGHT", -14, 0)
 end
@@ -331,6 +336,7 @@ local function BuildBest(p)
         c.tip:SetTextColor(0.2, 0.8, 1)
         c.tip:SetWordWrap(false)
         c:SetScript("OnEnter", SpotTooltip)
+        c:SetScript("OnClick", function(self) if self.entry then ns.MapPin.Show(self.entry) end end)
         c:SetScript("OnLeave", GameTooltip_Hide)
         p.cards[i] = c
     end
@@ -370,7 +376,7 @@ local function RefreshBest(p)
     p.empty:Hide()
     local bonus = (r.mod and r.mod > 0) and (" |cff33ff33(+" .. r.mod .. " from pole, lure and gear)|r") or ""
     p.header:SetText(U.Icon(ns.Icons.fishing) .. (" Best spots for your skill: |cffffffff%d|r%s"):format(r.skill, bonus))
-    p.sub:SetText(("Fishing %d/%d.  Ranked by gold per hour with your prices; hover a card for details."):format(r.rank, r.maxRank or 0))
+    p.sub:SetText(("Fishing %d/%d.  Ranked by gold per hour with your prices. Hover for details, click to show on the map."):format(r.rank, r.maxRank or 0))
 
     for i, c in ipairs(p.cards) do
         local e = r.best[i]

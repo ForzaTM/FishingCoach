@@ -10,6 +10,18 @@ ns.Tracker = Tracker
 local FIRST_CATCH_SECONDS = 15 -- typical cast-to-loot cycle for the first catch
 
 Tracker.UNITS = { "minute", "hour", "custom" }
+Tracker.GRID = 40 -- map cells per side for remembering where you fish
+
+-- Centre (0-1) of the map cell where you caught the most fish in a zone.
+function Tracker.FavouriteSpot(z)
+    local best, bestN
+    for cell, n in pairs(z and z.cells or {}) do
+        if not bestN or n > bestN then best, bestN = cell, n end
+    end
+    if not best then return nil end
+    local gx, gy = best:match("^(%d+):(%d+)$")
+    return (tonumber(gx) + 0.5) / Tracker.GRID, (tonumber(gy) + 0.5) / Tracker.GRID, bestN
+end
 
 function Tracker.NewSession()
     return { started = time(), active = 0, last = nil, catches = 0, items = {}, money = 0 }
@@ -54,6 +66,15 @@ function Tracker.RecordCatch(items)
     local z = ZoneStats(mapID, zoneName)
     z.seconds = z.seconds + add
     z.catches = z.catches + 1
+
+    -- Where you fish: catches counted per map cell (2.5% of the map), so the
+    -- map marker can point at your favourite spot in this zone.
+    local px, py = ns.C.GetPlayerPosition(mapID)
+    if px then
+        local cell = math.floor(px * Tracker.GRID) .. ":" .. math.floor(py * Tracker.GRID)
+        z.cells = z.cells or {}
+        z.cells[cell] = (z.cells[cell] or 0) + 1
+    end
 
     for _, it in ipairs(items) do
         s.items[it.id] = (s.items[it.id] or 0) + it.count

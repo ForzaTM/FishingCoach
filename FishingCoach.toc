@@ -30,4 +30,5 @@ UI\MainFrame.lua
 UI\HUD.lua
 UI\MinimapButton.lua
 UI\OptionsPanel.lua
+UI\MapPin.lua
 Core\Init.lua

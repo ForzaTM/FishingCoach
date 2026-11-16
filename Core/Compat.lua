@@ -57,6 +57,16 @@ function C.GetPlayerMap()
     return mapID, (info and info.name) or GetRealZoneText()
 end
 
+-- Player position (0-1) on the given map, or nil (instances, secret values).
+function C.GetPlayerPosition(mapID)
+    if not (mapID and C_Map and C_Map.GetPlayerMapPosition) then return nil end
+    local ok, pos = pcall(C_Map.GetPlayerMapPosition, mapID, "player")
+    if not ok or not pos or C.IsSecret(pos) then return nil end
+    local x, y = pos:GetXY()
+    if C.IsSecret(x) or C.IsSecret(y) or not x or not y or (x == 0 and y == 0) then return nil end
+    return x, y
+end
+
 function C.GetMapName(mapID)
     if mapID and C_Map and C_Map.GetMapInfo then
         local info = C_Map.GetMapInfo(mapID)

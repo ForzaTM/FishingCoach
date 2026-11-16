@@ -23,6 +23,8 @@ end
 
 -- Builds a ranking entry from seed data (estimate).
 local function FromSeed(loc)
+    -- Even a few catches here pin the marker to where you actually fish.
+    local fx, fy = ns.Tracker.FavouriteSpot(ns.db.zoneStats[loc.mapID])
     local perCatch = loc.junkCopper or 0
     local loot = {}
     for _, e in ipairs(loc.loot) do
@@ -38,6 +40,8 @@ local function FromSeed(loc)
         key = loc.key, mapID = loc.mapID,
         zone = ns.C.GetMapName(loc.mapID) or loc.zone,
         spot = loc.spot, minSkill = loc.minSkill, tip = loc.tip,
+        x = fx or loc.x, y = fy or loc.y,
+        posSource = fx and "yours" or (loc.x and "approximate") or nil,
         perHour = perCatch * loc.catchesPerHour,
         catchesPerHour = loc.catchesPerHour,
         loot = loot, learned = false,
@@ -46,6 +50,7 @@ end
 
 -- Builds a ranking entry from the player's own zone statistics.
 local function FromStats(z, seed)
+    local fx, fy = ns.Tracker.FavouriteSpot(z)
     local value = ns.Tracker.ItemsValue(z.items)
     local loot = {}
     for _, it in ipairs(ns.Tracker.SortedItems(z.items)) do
@@ -59,6 +64,8 @@ local function FromStats(z, seed)
         perHour = z.seconds > 0 and (value / z.seconds * 3600) or 0,
         catchesPerHour = z.seconds > 0 and (z.catches / z.seconds * 3600) or 0,
         catches = z.catches,
+        x = fx or (seed and seed.x), y = fy or (seed and seed.y),
+        posSource = fx and "yours" or (seed and seed.x and "approximate") or nil,
         loot = loot, learned = true,
     }
 end

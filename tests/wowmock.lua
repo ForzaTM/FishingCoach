@@ -144,6 +144,9 @@ function Widget:GetEffectiveScale() return 1 end
 function Widget:GetPoint() return "CENTER", nil, "CENTER", 10, 20 end
 function Widget:GetName() return self.__name end
 function Widget:GetStringHeight() return 12 end
+function Widget:GetParent() return self.__parent end
+function Widget:SetParent(p) self.__parent = p end
+function Widget:SetPoint(...) self.__point = { ... } end
 function Widget:CreateTexture() return NewWidget("Texture", nil, self) end
 function Widget:CreateFontString() return NewWidget("FontString", nil, self) end
 function Widget:SetTexture(t) self.__texture = t end
@@ -185,6 +188,38 @@ Settings = {
         if cat and cat.frame.__scripts.OnShow then cat.frame.__scripts.OnShow(cat.frame) end
     end,
 }
+
+-- World map: shown state, current map, canvas, hooks, combat lockdown.
+Mock.inCombat = false
+InCombatLockdown = function() return Mock.inCombat end
+WorldMapFrame = NewWidget("Frame", "WorldMapFrame", UIParent)
+WorldMapFrame.__shown = false
+WorldMapFrame.__mapID = nil
+WorldMapFrame.canvas = NewWidget("Frame", "WorldMapCanvas", WorldMapFrame)
+function WorldMapFrame.canvas:GetWidth() return 1000 end
+function WorldMapFrame.canvas:GetHeight() return 667 end
+function WorldMapFrame.canvas:GetScale() return 2 end
+function WorldMapFrame:GetCanvas() return self.canvas end
+function WorldMapFrame:GetMapID() return self.__mapID end
+function WorldMapFrame:OnMapChanged() end
+function WorldMapFrame:SetMapID(id) self.__mapID = id; self:OnMapChanged() end
+function WorldMapFrame:Show()
+    self.__shown = true
+    if self.__scripts.OnShow then self.__scripts.OnShow(self) end
+end
+function WorldMapFrame:Hide()
+    self.__shown = false
+    if self.__scripts.OnHide then self.__scripts.OnHide(self) end
+end
+OpenWorldMap = function(id)
+    if Mock.inCombat then error("blocked in combat") end
+    WorldMapFrame.__mapID = id
+    WorldMapFrame:Show()
+end
+hooksecurefunc = function(tbl, name, fn)
+    local orig = tbl[name]
+    tbl[name] = function(...) local r = { orig(...) }; fn(...); return unpack(r) end
+end
 
 UISpecialFrames = {}
 StaticPopupDialogs = {}
@@ -328,3 +363,11 @@ function Mock.Catch(items, coins, fishing)
 end
 
 function Mock.Advance(seconds) Mock.clock = Mock.clock + seconds end
+
+-- (defined after C_Map exists)
+Mock.pos = nil -- { x, y } player position on the current zone map
+C_Map.GetPlayerMapPosition = function()
+    if not Mock.pos then return nil end
+    local x, y = Mock.pos[1], Mock.pos[2]
+    return { GetXY = function() return x, y end }
+end
