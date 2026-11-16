@@ -92,7 +92,9 @@ def cmd_package(a):
             zipfile.ZipFile(installer_out, "w", zipfile.ZIP_DEFLATED) as zi:
         for f in sorted(ROOT.rglob("*")):
             rel = f.relative_to(ROOT)
-            if f.is_dir() or rel.parts[0] in PACKAGE_IGNORE:
+            # Skip dev files and every hidden top-level folder (.git, .github,
+            # .release left behind by the CurseForge packager on CI, ...).
+            if f.is_dir() or rel.parts[0] in PACKAGE_IGNORE or rel.parts[0].startswith("."):
                 continue
             arc = "ReelGold/" + rel.as_posix()
             if f.suffix in (".toc", ".lua"):
