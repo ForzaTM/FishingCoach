@@ -79,6 +79,11 @@ Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|optio
   at login and on `ADDON_LOADED` Auctionator; `AUCTION_HOUSE_CLOSED` refreshes as TSM fallback.
   Chat message max once per AH visit. Title bar: Refresh prices button + `Pricing.ShortStatus()`.
   Auctionator 347's TOC lists interface 16001 too (independent confirmation).
+- **Prices shown vs counted:** `Pricing.GetDetail(id)` -> `market` (AH price exactly as Auctionator's
+  `m` = last seen minimum buyout per unit) and `value` (market minus 5% AH cut when `applyAHCut`,
+  floored). Catch log shows `market` each and `value` totals; gold/hour uses `value`. Owner once
+  reported "wrong prices": it was the unlabelled 5% cut (verified against their Auctionator DB).
+  Auctionator saves prices CBOR-encoded per realm in `AUCTIONATOR_PRICE_DATABASE`.
 - **Spots:** estimate = sum(share x price) + junk, x catchesPerHour. Day/night
   entries (18:00-06:00 = night, game time) and seasons (Apr-Sep summer) filter
   loot. After `minLearnCatches` (40) in a zone, YOUR data replaces the estimate,

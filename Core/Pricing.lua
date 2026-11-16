@@ -47,13 +47,22 @@ local function IsSoulbound(id)
     return bind == 1 -- LE_ITEM_BIND_ON_ACQUIRE
 end
 
--- Returns copper value per unit and a label of where it came from.
-function Pricing.Get(id)
-    if not id then return 0, "?" end
+-- Full price picture for one item (all copper, per unit):
+--   market = the price as you see it (AH price exactly as Auctionator/TSM
+--            report it, or the vendor / manual price)
+--   value  = what ReelGold counts: market minus the 5% AH cut when enabled
+--   cut    = copper removed by the AH cut (0 if none)
+--   source = "Auctionator", "TSM", "Vendor" or "Manual"
+--   vendor = vendor sell price, ah = raw AH price or nil
+function Pricing.GetDetail(id)
+    local d = { vendor = 0, cut = 0 }
+    if not id then d.market, d.value, d.source = 0, 0, "?"; return d end
+    d.vendor = Pricing.GetVendor(id)
     local override = ns.db.priceOverrides[id]
-    if override then return override, "Manual" end
-
-    local vendor = Pricing.GetVendor(id)
+    if override then
+        d.market, d.value, d.source = override, override, "Manual"
+        return d
+    end
     local src = ns.db.priceSource
     if src ~= "vendor" and not IsSoulbound(id) then
         local ah, label
@@ -64,11 +73,22 @@ function Pricing.Get(id)
             ah = FromTSM(id); label = "TSM"
         end
         if ah then
-            if ns.db.applyAHCut then ah = math.floor(ah * AH_CUT) end
-            if ah >= vendor then return ah, label end
+            d.ah = ah
+            local net = ns.db.applyAHCut and math.floor(ah * AH_CUT) or ah
+            if net >= d.vendor then
+                d.market, d.value, d.source, d.cut = ah, net, label, ah - net
+                return d
+            end
         end
     end
-    return vendor, "Vendor"
+    d.market, d.value, d.source = d.vendor, d.vendor, "Vendor"
+    return d
+end
+
+-- Returns the counted copper value per unit and where it came from.
+function Pricing.Get(id)
+    local d = Pricing.GetDetail(id)
+    return d.value, d.source
 end
 
 function Pricing.SetOverride(id, copper)

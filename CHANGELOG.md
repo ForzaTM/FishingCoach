@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Catch log shows each item's price exactly as on the Auction House (tagged AH / vendor / set); the total column is labelled "after 5% AH cut". Item tooltips show AH price, after-cut value, vendor price and what ReelGold counts.
 - Prices update by themselves after every Auctionator scan (and when you close the Auction House). New "Refresh prices" button and price status (source, how many fish have AH prices, how old) in the window title bar; `/rgold prices` does the same. Item tooltips show when Auctionator last saw the item.
 - ReelGold now uses its own logo (addon list, minimap button, window title, HUD, Options page and addon compartment) instead of the generic fishing icon.
 - New "For me" tab: your top 3 spots for your current skill with catches and tips, plus the next better-paying spot to unlock and the quickest way to get the skill. `/rgold best` opens it.

@@ -120,12 +120,15 @@ function Tracker.Rate()
     return Tracker.TotalValue() / secs * Tracker.UnitSeconds()
 end
 
--- Sorted list of { id, count, unit, total, source }
+-- Sorted list of { id, count, unit, market, total, source }
+--   market = price each as shown on the AH (or vendor/manual)
+--   unit   = counted value each (after the AH cut when enabled); total = unit * count
 function Tracker.SortedItems(items)
     local list = {}
     for id, count in pairs(items) do
-        local unit, source = ns.Pricing.Get(id)
-        list[#list + 1] = { id = id, count = count, unit = unit, total = unit * count, source = source }
+        local d = ns.Pricing.GetDetail(id)
+        list[#list + 1] = { id = id, count = count, unit = d.value, market = d.market,
+                            total = d.value * count, source = d.source }
     end
     table.sort(list, function(a, b)
         if a.total ~= b.total then return a.total > b.total end

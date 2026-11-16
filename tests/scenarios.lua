@@ -342,6 +342,54 @@ test("Auctionator scans update prices and every view automatically", function()
     ahdb[13422] = 7000 -- back to the value the later tests expect
 end)
 
+test("catch log shows the AH price exactly as Auctionator has it (real case from Wetlands)", function()
+    -- Real data from the owner's game: Auctionator 'last seen minimum' prices (copper per unit).
+    local prev = Auctionator
+    local ahdb = { [6358] = 194, [6359] = 24, [6361] = 4 }
+    Auctionator = { API = { v1 = {
+        GetAuctionPriceByItemID = function(_, id) return ahdb[id] end,
+        GetAuctionAgeByItemID = function(_, id) return ahdb[id] and 0 or nil end,
+    } } }
+    T.Reset()
+    Mock.mapID = 1437
+    -- The owner's real session: Albacore x4, Blackmouth x1, Message in a Bottle, Waterlogged Crate.
+    for _, catch in ipairs({ { {6361, 1} }, { {6361, 1} }, { {6307, 1} }, { {6361, 1} }, { {6358, 1} }, { {6352, 1} }, { {6361, 1} } }) do
+        Mock.Advance(25); Mock.Catch(catch)
+    end
+    local d = P.GetDetail(6358)
+    eq(d.market, 194, "market = Auctionator price, untouched")
+    eq(d.value, 184, "counted value = 194 minus 5% (rounded down)")
+    eq(d.cut, 10, "cut amount")
+    eq(d.source, "Auctionator")
+
+    ns.UI.Toggle("session"); ns.UI.Refresh()
+    local plain = function(s) return (s:gsub("|T[^|]+|t", "")) end
+    local rows = {}
+    for _, f in ipairs(Mock.frames) do
+        if f.count and f.name and f:IsShown() then rows[f.name.__text] = plain(f.count.__text) .. " = " .. plain(f.total.__text) end
+    end
+    REPORT("    Catch log rows: " .. table.concat((function() local t = {} for k, v in pairs(rows) do t[#t + 1] = k .. ": " .. v end table.sort(t) return t end)(), " | "))
+    check(rows["Oily Blackmouth"] and rows["Oily Blackmouth"]:find("^x1  @ 1 94 |cff33ff33AH|r = 1 84$"), "Blackmouth row: " .. tostring(rows["Oily Blackmouth"]))
+    check(rows["Raw Rainbow Fin Albacore"] and rows["Raw Rainbow Fin Albacore"]:find("^x4  @ 4 |cff33ff33AH|r = 12$"), "Albacore row: " .. tostring(rows["Raw Rainbow Fin Albacore"]))
+    check(rows["Message in a Bottle"] and rows["Message in a Bottle"]:find("vendor"), "no AH data -> vendor")
+
+    -- With the AH cut off, totals equal the AH price exactly.
+    ReelGoldDB.applyAHCut = false
+    eq((P.Get(6358)), 194, "no cut: counted = AH price")
+    ReelGoldDB.applyAHCut = true
+
+    -- After a new scan the log uses the new price at once.
+    ahdb[6358] = 250
+    ns.UI.Refresh()
+    for _, f in ipairs(Mock.frames) do
+        if f.count and f.name and f.name.__text == "Oily Blackmouth" then
+            check(plain(f.count.__text):find("@ 2 50"), "updated price: " .. plain(f.count.__text))
+        end
+    end
+    Auctionator = prev
+    Mock.mapID = 1447
+end)
+
 test("HUD has a close button that hides it until shown again", function()
     ReelGoldDB.hud.shown, ReelGoldDB.hud.onlyWithPole = true, true
     Mock.pole = 6256

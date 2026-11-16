@@ -70,6 +70,9 @@ local function BuildSession(p)
 
     local lootTitle = W.Text(p, "GameFontNormal", "Catch log")
     lootTitle:SetPoint("TOPLEFT", 16, -210)
+    -- Explains the two price columns: price each as on the AH, total as counted.
+    p.logHint = W.Text(p, "GameFontDisableSmall")
+    p.logHint:SetPoint("LEFT", lootTitle, "RIGHT", 8, 0)
 
     p.rows = {}
     for i = 1, LOOT_ROWS do
@@ -139,6 +142,8 @@ local function RefreshSession(p)
     p.stats[5]:SetText(U.Money(T.TotalValue()))
 
     local list = T.SortedItems(s.items)
+    p.logHint:SetText(ns.db.applyAHCut and "price each as on the AH · total after 5% AH cut"
+        or "price each · total")
     p.pager:SetTotal(#list)
     p.pager.label:SetText(("%d / %d"):format(p.pager.page, p.pager:Pages()))
     p.pager.prev:SetEnabled(p.pager.page > 1)
@@ -151,7 +156,9 @@ local function RefreshSession(p)
             row.icon:SetItem(it.id)
             row.name:SetText(name or ("item:" .. it.id))
             row.name:SetTextColor(U.QualityColor(quality))
-            row.count:SetText("x" .. it.count .. "  |cff999999@ " .. U.Money(it.unit, true) .. "|r")
+            local tag = (it.source == "Auctionator" or it.source == "TSM") and "|cff33ff33AH|r"
+                or it.source == "Manual" and "|cffffd100set|r" or "|cff999999vendor|r"
+            row.count:SetText("x" .. it.count .. "  @ " .. U.Money(it.market) .. " " .. tag)
             row.total:SetText(U.Money(it.total, true))
             row:Show()
             if not name then ns.C.RequestItem(it.id) end
@@ -493,7 +500,9 @@ local function BuildSettings(p)
 
     local cut = W.Check(p, "Subtract 5% Auction House cut",
         function() return ns.db.applyAHCut end,
-        function(v) ns.db.applyAHCut = v; ns:FireRefresh() end)
+        function(v) ns.db.applyAHCut = v; ns:FireRefresh() end,
+        "On: gold per hour and totals count what you receive after the AH keeps 5%. "
+        .. "The catch log still shows each item's price exactly as on the AH.")
     cut:SetPoint("TOPLEFT", 12, line(28))
 
     -- Manual price override with drag & drop of an item.

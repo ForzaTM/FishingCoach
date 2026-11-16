@@ -62,7 +62,9 @@ local function Build()
     y = y - 30
     check("Subtract 5% Auction House cut",
         function() return ns.db.applyAHCut end,
-        function(v) ns.db.applyAHCut = v; ns:FireRefresh() end)
+        function(v) ns.db.applyAHCut = v; ns:FireRefresh() end,
+        "On: gold per hour and totals count what you receive after the AH keeps 5%. "
+        .. "The catch log still shows each item's price exactly as on the AH.")
 
     y = y - 6
     header("Tracking", ns.Icons.clock)

@@ -112,8 +112,24 @@ function W.ItemIcon(parent, size)
             GameTooltip:SetItemByID(self.itemID)
             local info = ns.Fish[self.itemID]
             if info and info.use then GameTooltip:AddLine("ReelGold: " .. info.use, 0.2, 0.8, 1, true) end
-            local price, src = ns.Pricing.Get(self.itemID)
-            GameTooltip:AddDoubleLine("Value (" .. src .. ")", ns.Util.Money(price), 1, 0.82, 0, 1, 1, 1)
+            local d = ns.Pricing.GetDetail(self.itemID)
+            local src = d.source
+            local M = ns.Util.Money
+            GameTooltip:AddLine(" ")
+            if d.ah then
+                GameTooltip:AddDoubleLine("AH price (" .. (src == "Vendor" and "Auctionator/TSM" or src) .. ")", M(d.ah), 1, 0.82, 0, 1, 1, 1)
+                if d.cut > 0 then
+                    GameTooltip:AddDoubleLine("After 5% AH cut", M(d.value), 1, 0.82, 0, 1, 1, 1)
+                end
+            elseif src ~= "Manual" then
+                GameTooltip:AddLine("No AH price yet: run an Auctionator scan", 0.7, 0.7, 0.7)
+            end
+            if src == "Manual" then
+                GameTooltip:AddDoubleLine("Your price", M(d.value), 1, 0.82, 0, 1, 1, 1)
+            end
+            GameTooltip:AddDoubleLine("Vendor price", M(d.vendor), 0.7, 0.7, 0.7, 0.7, 0.7, 0.7)
+            GameTooltip:AddDoubleLine("ReelGold counts", M(d.value) .. " (" .. (src == "Vendor" and "vendor" or src) .. ")",
+                0.2, 1, 0.2, 0.2, 1, 0.2)
             if src == "Auctionator" then
                 local age = ns.Pricing.GetAuctionAge(self.itemID)
                 local txt = age == nil and "older than 3 weeks" or age == 0 and "today"
