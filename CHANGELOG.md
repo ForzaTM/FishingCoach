@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Prices update by themselves after every Auctionator scan (and when you close the Auction House). New "Refresh prices" button and price status (source, how many fish have AH prices, how old) in the window title bar; `/rgold prices` does the same. Item tooltips show when Auctionator last saw the item.
 - ReelGold now uses its own logo (addon list, minimap button, window title, HUD, Options page and addon compartment) instead of the generic fishing icon.
 - New "For me" tab: your top 3 spots for your current skill with catches and tips, plus the next better-paying spot to unlock and the quickest way to get the skill. `/rgold best` opens it.
 - The HUD has a close button (X). Show it again with `/rgold hud`, a right-click on the minimap button, or in Settings.

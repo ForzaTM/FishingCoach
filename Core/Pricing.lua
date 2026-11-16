@@ -81,6 +81,90 @@ function Pricing.SetOverride(id, copper)
     ns:FireRefresh()
 end
 
+-- Days since Auctionator last saw the item on the AH (nil = never / >21 days).
+function Pricing.GetAuctionAge(id)
+    if not (Pricing.HasAuctionator() and Auctionator.API.v1.GetAuctionAgeByItemID) then return nil end
+    local ok, age = pcall(Auctionator.API.v1.GetAuctionAgeByItemID, ADDON, id)
+    if ok and type(age) == "number" then return age end
+end
+
+----------------------------------------------------------------------
+-- Price updates: Auctionator scans, AH closing, manual button
+----------------------------------------------------------------------
+Pricing.lastUpdate = nil      -- time() of the last price refresh
+Pricing.lastReason = nil      -- "scan", "ah", "manual" or "login"
+local hookedAuctionator = false
+-- Auctionator calls back after full scans AND after normal AH searches, so the
+-- chat message is shown at most once per Auction House visit.
+local announcedThisVisit = false
+
+-- How many known fish currently have an auction price: n, total.
+function Pricing.Coverage()
+    local n, total = 0, 0
+    for id in pairs(ns.Fish) do
+        total = total + 1
+        local src = select(2, Pricing.Get(id))
+        if src == "Auctionator" or src == "TSM" then n = n + 1 end
+    end
+    return n, total
+end
+
+-- Re-reads all prices and redraws every ReelGold view.
+-- reason: "scan" (Auctionator finished processing), "ah" (AH closed),
+-- "manual" (button / slash), "login".
+function Pricing.Refresh(reason)
+    Pricing.lastUpdate = time()
+    Pricing.lastReason = reason or "manual"
+    ns:FireRefresh()
+    if reason == "ah" then announcedThisVisit = false end
+    if reason == "manual" or (reason == "scan" and not announcedThisVisit) then
+        if reason == "scan" then announcedThisVisit = true end
+        local n, total = Pricing.Coverage()
+        local src = ns.db.priceSource == "vendor" and "vendor prices only"
+            or (n > 0 and ("%d of %d fish have Auction House prices"):format(n, total))
+            or "no Auction House prices yet: open the Auction House and run an Auctionator scan"
+        ns.Util.Print(("Prices updated%s: %s."):format(reason == "scan" and " from Auctionator" or "", src))
+    end
+end
+
+-- Hook Auctionator's "database updated" callback (full scans and processed
+-- searches). Safe to call repeatedly; only hooks once.
+function Pricing.HookSources()
+    if hookedAuctionator or not Pricing.HasAuctionator() then return end
+    local register = Auctionator.API.v1.RegisterForDBUpdate
+    if type(register) ~= "function" then return end
+    local ok = pcall(register, ADDON, function() Pricing.Refresh("scan") end)
+    hookedAuctionator = ok
+end
+
+function Pricing.IsHooked() return hookedAuctionator end
+
+-- Short status for the window title bar, e.g. "Auctionator 18/27 · 2m ago".
+function Pricing.ShortStatus()
+    local label
+    if ns.db.priceSource == "vendor" then
+        label = "Vendor prices"
+    else
+        local n, total = Pricing.Coverage()
+        local src = (ns.db.priceSource == "tsm" or (ns.db.priceSource == "auto" and not Pricing.HasAuctionator() and Pricing.HasTSM())) and "TSM"
+            or (Pricing.HasAuctionator() and "Auctionator") or (Pricing.HasTSM() and "TSM") or nil
+        if not src then
+            label = "Vendor prices"
+        else
+            label = ("%s %d/%d"):format(src, n, total)
+        end
+    end
+    local age = ""
+    if Pricing.lastUpdate then
+        local s = time() - Pricing.lastUpdate
+        local m = math.floor(s / 60)
+        age = (s < 60 and "  ·  just now")
+            or (m < 60 and ("  ·  %dm ago"):format(m))
+            or ("  ·  %dh %dm ago"):format(math.floor(m / 60), m % 60)
+    end
+    return label .. age
+end
+
 function Pricing.StatusText()
     local parts = {}
     parts[#parts + 1] = (Pricing.HasAuctionator() and "|cff33ff33" or "|cff888888") .. "Auctionator|r"

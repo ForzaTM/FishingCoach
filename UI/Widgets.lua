@@ -114,6 +114,12 @@ function W.ItemIcon(parent, size)
             if info and info.use then GameTooltip:AddLine("ReelGold: " .. info.use, 0.2, 0.8, 1, true) end
             local price, src = ns.Pricing.Get(self.itemID)
             GameTooltip:AddDoubleLine("Value (" .. src .. ")", ns.Util.Money(price), 1, 0.82, 0, 1, 1, 1)
+            if src == "Auctionator" then
+                local age = ns.Pricing.GetAuctionAge(self.itemID)
+                local txt = age == nil and "older than 3 weeks" or age == 0 and "today"
+                    or age == 1 and "1 day ago" or (age .. " days ago")
+                GameTooltip:AddDoubleLine("Last seen on the AH", txt, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7)
+            end
             GameTooltip:Show()
         end
     end)

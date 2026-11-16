@@ -646,6 +646,27 @@ local function Create()
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", -2, -2)
 
+    -- Price refresh: button + "Auctionator 18/27 · 2m ago" status, on every tab.
+    local refreshBtn = W.Button(frame, "Refresh prices", 112, 22, function()
+        ns.Pricing.HookSources()
+        ns.Pricing.Refresh("manual")
+    end)
+    refreshBtn:SetPoint("RIGHT", close, "LEFT", -4, 0)
+    refreshBtn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText("Refresh prices", 1, 1, 1)
+        GameTooltip:AddLine("Re-reads prices from Auctionator / TSM and updates every tab.", nil, nil, nil, true)
+        GameTooltip:AddLine(ns.Pricing.IsHooked()
+            and "|cff33ff33Automatic:|r ReelGold also updates by itself after every Auctionator scan."
+            or "Prices also update when you close the Auction House.", nil, nil, nil, true)
+        GameTooltip:AddLine("No AH prices yet? Open the Auction House and run an Auctionator scan.", 0.7, 0.7, 0.7, true)
+        GameTooltip:Show()
+    end)
+    refreshBtn:SetScript("OnLeave", GameTooltip_Hide)
+    frame.priceStatus = W.Text(frame, "GameFontDisableSmall")
+    frame.priceStatus:SetPoint("RIGHT", refreshBtn, "LEFT", -6, 0)
+    frame.priceStatus:SetJustifyH("RIGHT")
+
     local prev
     for _, t in ipairs(TABS) do
         local tabW = math.floor((WIDTH - 28 - 4 * (#TABS - 1)) / #TABS)
@@ -673,7 +694,7 @@ local function Create()
         elapsed = elapsed + dt
         if elapsed >= 1 then
             elapsed = 0
-            if current == "session" then UI.Refresh() end
+            if current == "session" then UI.Refresh() else frame.priceStatus:SetText(ns.Pricing.ShortStatus()) end
         end
     end)
     frame:Hide()
@@ -682,6 +703,7 @@ end
 
 function UI.Refresh()
     if not frame or not frame:IsShown() then return end
+    frame.priceStatus:SetText(ns.Pricing.ShortStatus())
     for _, t in ipairs(TABS) do
         if t.key == current then t.refresh(panels[t.key]) end
     end

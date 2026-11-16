@@ -30,6 +30,7 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 
 ### Prices
 - Uses **Auctionator** or **TradeSkillMaster** prices when installed (both optional).
+- **Updates by itself after every Auctionator scan**, plus a Refresh prices button and a status line showing how many fish have AH prices and how fresh they are.
 - Falls back to vendor prices.
 - Optional 5% Auction House cut.
 - Set your own price for any item: drag it onto the price box.
@@ -46,6 +47,7 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - `reset` to start a new session
 - `minimap` to show or hide the minimap button
 - `options` to open the ReelGold page in Options -> AddOns
+- `prices` to refresh prices now
 - `version` to show the addon and data version
 
 ## What ReelGold does not do

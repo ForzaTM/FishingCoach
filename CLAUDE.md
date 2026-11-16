@@ -65,7 +65,7 @@ Media/Icon.tga        128x128 32-bit TGA logo (built from docs/art/icon.svg by `
 ```
 Saved variables: `ReelGoldDB` (account: settings, priceOverrides, zoneStats keyed by
 uiMapID) and `ReelGoldCharDB` (character: current session).
-Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|options|hud|reset|minimap|version`.
+Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|options|prices|hud|reset|minimap|version`.
 
 ## Key behaviours and why
 - **Loot:** `LOOT_READY` and `LOOT_OPENED` both fire; a `handled` flag dedupes per
@@ -74,6 +74,11 @@ Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|optio
 - **Active time:** the gap between catches counts only if <= idle timeout
   (default 300 s); the first catch after a break adds a 15 s estimate. Rates
   (per minute / hour / custom N minutes) = value / active seconds x unit.
+- **Price updates:** `Pricing.HookSources()` registers `Auctionator.API.v1.RegisterForDBUpdate`
+  (fires after full scans AND processed AH searches; verified in Auctionator 347 source)
+  at login and on `ADDON_LOADED` Auctionator; `AUCTION_HOUSE_CLOSED` refreshes as TSM fallback.
+  Chat message max once per AH visit. Title bar: Refresh prices button + `Pricing.ShortStatus()`.
+  Auctionator 347's TOC lists interface 16001 too (independent confirmation).
 - **Spots:** estimate = sum(share x price) + junk, x catchesPerHour. Day/night
   entries (18:00-06:00 = night, game time) and seasons (Apr-Sep summer) filter
   loot. After `minLearnCatches` (40) in a zone, YOUR data replaces the estimate,

@@ -280,6 +280,68 @@ test("newer client interface prints a one-time notice", function()
     Mock.interface = nil
 end)
 
+test("Auctionator scans update prices and every view automatically", function()
+    -- Fake Auctionator with the same API as Auctionator 347 (RegisterForDBUpdate etc.).
+    local ahdb, callbacks = { [13422] = 1000, [13757] = 2 }, {}
+    Auctionator = { API = { v1 = {
+        GetAuctionPriceByItemID = function(_, id) return ahdb[id] end,
+        GetAuctionAgeByItemID = function(_, id) return ahdb[id] and 0 or nil end,
+        RegisterForDBUpdate = function(caller, cb)
+            eq(caller, "ReelGold", "caller ID"); callbacks[#callbacks + 1] = cb
+        end,
+    } } }
+    Mock.Fire("ADDON_LOADED", "Auctionator")
+    Mock.Fire("ADDON_LOADED", "Auctionator")
+    eq(#callbacks, 1, "hooked exactly once")
+    check(P.IsHooked(), "hook reported")
+
+    ns.UI.Toggle("spots")
+    local origRefresh, redraws = ns.UI.Refresh, 0
+    ns.UI.Refresh = function(...) redraws = redraws + 1; return origRefresh(...) end
+    eq((P.Get(13422)), 950, "old AH price (1000 - 5%)")
+
+    -- A scan finds a new price: ReelGold picks it up and redraws without any click.
+    ahdb[13422] = 9000
+    wipe(Mock.printed)
+    callbacks[1](); Mock.FlushTimers()
+    eq((P.Get(13422)), 8550, "new AH price used")
+    eq(P.lastReason, "scan")
+    check(redraws >= 1, "window redrawn after the scan")
+    local msgs = 0
+    for _, l in ipairs(Mock.printed) do if l:find("Prices updated from Auctionator") then msgs = msgs + 1 end end
+    eq(msgs, 1, "one chat message")
+    callbacks[1](); callbacks[1](); Mock.FlushTimers()
+    msgs = 0
+    for _, l in ipairs(Mock.printed) do if l:find("Prices updated") then msgs = msgs + 1 end end
+    eq(msgs, 1, "no message spam for repeated scan callbacks in one AH visit")
+    check(ReelGoldMainFrame.priceStatus:GetText():find("^Auctionator %d+/%d+"), "status: " .. ReelGoldMainFrame.priceStatus:GetText())
+
+    -- Fallback: closing the Auction House refreshes too (TSM users).
+    Mock.Fire("AUCTION_HOUSE_CLOSED")
+    eq(P.lastReason, "ah")
+    wipe(Mock.printed)
+    callbacks[1](); Mock.FlushTimers()
+    check(Mock.printed[1] and Mock.printed[1]:find("Prices updated from Auctionator"), "next AH visit announces again")
+
+    -- Manual button in the title bar and /rgold prices.
+    local btn
+    for _, f in ipairs(Mock.frames) do
+        if f.__parent == ReelGoldMainFrame and f.__text == "Refresh prices" then btn = f end
+    end
+    check(btn, "Refresh prices button exists")
+    wipe(Mock.printed)
+    btn.__scripts.OnClick(btn, "LeftButton"); Mock.FlushTimers()
+    eq(P.lastReason, "manual")
+    check(Mock.printed[1] and Mock.printed[1]:find("of %d+ fish have Auction House prices"), "coverage message: " .. tostring(Mock.printed[1]))
+    SlashCmdList.REELGOLD("prices")
+    eq(P.lastReason, "manual")
+    Mock.Advance(125)
+    check(ReelGoldMainFrame.priceStatus:GetText() and P.ShortStatus():find("2m ago"), "age shown: " .. P.ShortStatus())
+
+    ns.UI.Refresh = origRefresh
+    ahdb[13422] = 7000 -- back to the value the later tests expect
+end)
+
 test("HUD has a close button that hides it until shown again", function()
     ReelGoldDB.hud.shown, ReelGoldDB.hud.onlyWithPole = true, true
     Mock.pole = 6256

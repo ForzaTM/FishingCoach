@@ -77,10 +77,15 @@ events:SetScript("OnEvent", function(_, event, arg1)
         ReelGoldCharDB = ReelGoldCharDB or {}
         ReelGoldCharDB.session = ReelGoldCharDB.session or ns.Tracker.NewSession()
         ns.db, ns.char = ReelGoldDB, ReelGoldCharDB
-        events:UnregisterEvent("ADDON_LOADED")
+
+    elseif event == "ADDON_LOADED" then
+        -- Auctionator loaded after us (or on demand): hook its scan callback.
+        if arg1 == "Auctionator" and ns.db then ns.Pricing.HookSources() end
 
     elseif event == "PLAYER_LOGIN" then
         PrimeItemCache()
+        ns.Pricing.HookSources()
+        ns.Pricing.Refresh("login")
         ns.Options.Register()
         ns.Minimap.Update()
         ns.HUD.UpdateVisibility()
@@ -93,7 +98,11 @@ events:SetScript("OnEvent", function(_, event, arg1)
         events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
         events:RegisterEvent("GET_ITEM_INFO_RECEIVED")
         events:RegisterEvent("SKILL_LINES_CHANGED")
+        -- Fallback for TSM and anything Auctionator's callback misses.
+        events:RegisterEvent("AUCTION_HOUSE_CLOSED")
 
+    elseif event == "AUCTION_HOUSE_CLOSED" then
+        ns.Pricing.Refresh("ah")
     elseif event == "LOOT_READY" or event == "LOOT_OPENED" then
         ns.Tracker.OnLootReady()
     elseif event == "LOOT_CLOSED" then
@@ -127,11 +136,14 @@ SlashCmdList.REELGOLD = function(msg)
         ns.Minimap.Update()
     elseif cmd == "options" or cmd == "config" then
         ns.Options.Open()
+    elseif cmd == "prices" or cmd == "refresh" then
+        ns.Pricing.HookSources()
+        ns.Pricing.Refresh("manual")
     elseif cmd == "version" then
         local gv = ns.GameVersion
         U.Print(("v%s, data v%d (%s), checked on client %s / interface %d")
             :format(ns.version, gv.DATA_VERSION, gv.DATA_DATE, gv.TESTED_CLIENT, gv.TESTED_INTERFACE))
     else
-        U.Print("Commands: /rgold [show | session | best | spots | tips | settings | options | hud | reset | minimap | version]")
+        U.Print("Commands: /rgold [show | session | best | spots | tips | settings | options | prices | hud | reset | minimap | version]")
     end
 end
