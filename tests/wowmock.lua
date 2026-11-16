@@ -163,6 +163,27 @@ function GameTooltip:AddDoubleLine(a, b) self.lines[#self.lines + 1] = tostring(
 function GameTooltip:SetItemByID(id) self.lines[#self.lines + 1] = "item:" .. id end
 GameTooltip_Hide = function() GameTooltip:Hide() end
 
+-- Blizzard Options window (Settings API, Dragonflight and later)
+Mock.settings = { categories = {}, addonCategories = {}, opened = nil }
+SettingsPanel = NewWidget("Frame", "SettingsPanel", UIParent)
+SettingsPanel.__shown = false
+HideUIPanel = function(f) f:Hide() end
+Settings = {
+    RegisterCanvasLayoutCategory = function(frame, name)
+        local cat = { frame = frame, name = name, id = #Mock.settings.categories + 1 }
+        function cat:GetID() return self.id end
+        Mock.settings.categories[#Mock.settings.categories + 1] = cat
+        return cat
+    end,
+    RegisterAddOnCategory = function(cat) Mock.settings.addonCategories[#Mock.settings.addonCategories + 1] = cat end,
+    OpenToCategory = function(id)
+        Mock.settings.opened = id
+        SettingsPanel:Show()
+        local cat = Mock.settings.categories[id]
+        if cat and cat.frame.__scripts.OnShow then cat.frame.__scripts.OnShow(cat.frame) end
+    end,
+}
+
 UISpecialFrames = {}
 StaticPopupDialogs = {}
 StaticPopup_Show = function(which) Mock.popups[#Mock.popups + 1] = which end

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- New ReelGold page in Options -> AddOns with the main settings and an "Open ReelGold" button. `/rgold options` opens it.
 - Spots list: no empty separator for zones known only from your own data.
 
 ## 1.0.1 (2026-11-16)

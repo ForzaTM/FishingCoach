@@ -81,6 +81,7 @@ events:SetScript("OnEvent", function(_, event, arg1)
 
     elseif event == "PLAYER_LOGIN" then
         PrimeItemCache()
+        ns.Options.Register()
         ns.Minimap.Update()
         ns.HUD.UpdateVisibility()
         VersionNotices()
@@ -124,11 +125,13 @@ SlashCmdList.REELGOLD = function(msg)
     elseif cmd == "minimap" then
         ns.db.minimap.hide = not ns.db.minimap.hide
         ns.Minimap.Update()
+    elseif cmd == "options" or cmd == "config" then
+        ns.Options.Open()
     elseif cmd == "version" then
         local gv = ns.GameVersion
         U.Print(("v%s, data v%d (%s), checked on client %s / interface %d")
             :format(ns.version, gv.DATA_VERSION, gv.DATA_DATE, gv.TESTED_CLIENT, gv.TESTED_INTERFACE))
     else
-        U.Print("Commands: /rgold [show | session | spots | tips | settings | hud | reset | minimap | version]")
+        U.Print("Commands: /rgold [show | session | spots | tips | settings | options | hud | reset | minimap | version]")
     end
 end

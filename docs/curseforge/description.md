@@ -44,6 +44,7 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - `hud` to show or hide the HUD
 - `reset` to start a new session
 - `minimap` to show or hide the minimap button
+- `options` to open the ReelGold page in Options -> AddOns
 - `version` to show the addon and data version
 
 ## What ReelGold does not do

@@ -28,4 +28,5 @@ UI\Widgets.lua
 UI\MainFrame.lua
 UI\HUD.lua
 UI\MinimapButton.lua
+UI\OptionsPanel.lua
 Core\Init.lua

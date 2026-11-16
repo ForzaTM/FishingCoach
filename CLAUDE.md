@@ -57,11 +57,12 @@ UI/Widgets.lua        tiny widget factory on long-lived Blizzard templates
 UI/MainFrame.lua      470x520 window: Session / Spots / Tips / Settings tabs (paged rows, no scroll frames)
 UI/HUD.lua            210x62 movable tracker
 UI/MinimapButton.lua  library-free minimap button + Addon Compartment functions
+UI/OptionsPanel.lua   Options -> AddOns page (Settings.RegisterCanvasLayoutCategory), registered on PLAYER_LOGIN
 Core/Init.lua         saved vars, MIGRATIONS, events, slash commands (loaded last)
 ```
 Saved variables: `ReelGoldDB` (account: settings, priceOverrides, zoneStats keyed by
 uiMapID) and `ReelGoldCharDB` (character: current session).
-Slash: `/rgold` or `/reelgold` with `show|session|spots|tips|settings|hud|reset|minimap|version`.
+Slash: `/rgold` or `/reelgold` with `show|session|spots|tips|settings|options|hud|reset|minimap|version`.
 
 ## Key behaviours and why
 - **Loot:** `LOOT_READY` and `LOOT_OPENED` both fire; a `handled` flag dedupes per

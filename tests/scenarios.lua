@@ -280,6 +280,33 @@ test("newer client interface prints a one-time notice", function()
     Mock.interface = nil
 end)
 
+test("ReelGold has a page in Options -> AddOns", function()
+    eq(#Mock.settings.addonCategories, 1, "registered exactly once (PLAYER_LOGIN fired several times)")
+    local cat = Mock.settings.addonCategories[1]
+    eq(cat.name, "ReelGold", "category name")
+    SlashCmdList.REELGOLD("options")
+    eq(Mock.settings.opened, cat:GetID(), "/rgold options opens the page")
+    check(SettingsPanel:IsShown(), "Options window shown")
+    -- Every control on the page works and changes the shared settings.
+    local panel = cat.frame
+    local before = ReelGoldDB.priceSource
+    for _, f in ipairs(Mock.frames) do
+        local p = f.__parent
+        while p and p ~= panel do p = p.__parent end
+        if p == panel and f.__scripts.OnClick and f.__kind == "Button" and f.__text:find("^Price source") then
+            f.__scripts.OnClick(f, "LeftButton")
+        end
+    end
+    check(ReelGoldDB.priceSource ~= before, "price source button cycles the shared setting")
+    ReelGoldDB.priceSource = before
+    -- "Open ReelGold" closes Options and opens the main window.
+    for _, f in ipairs(Mock.frames) do
+        if f.__parent == panel and f.__text == "Open ReelGold" then f.__scripts.OnClick(f, "LeftButton") end
+    end
+    check(not SettingsPanel:IsShown(), "Options window closed")
+    check(ReelGoldMainFrame and ReelGoldMainFrame:IsShown(), "main window opened")
+end)
+
 test("UI smoke test: every tab, button, tooltip and slash command runs", function()
     T.Reset()
     FishFor(30, 15, AZSHARA, 7)
