@@ -5,6 +5,7 @@ package-as: ReelGold
 ignore:
   - README.md
   - CHANGELOG.md
+  - CLAUDE.md
   - tools
   - .github
   - .gitignore
