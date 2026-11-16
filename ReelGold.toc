@@ -1,0 +1,31 @@
+## Interface: 16001
+## Title: |TInterface\Icons\Trade_Fishing:16|t Reel|cffffd100Gold|r
+## Notes: Fishing gold-per-time tracker, best profitable fishing spots and tips for World of Warcraft: Forever.
+## Author: ReelGold
+## Version: @project-version@
+## Category: Professions
+## IconTexture: Interface\Icons\Trade_Fishing
+## SavedVariables: ReelGoldDB
+## SavedVariablesPerCharacter: ReelGoldCharDB
+## OptionalDeps: Auctionator, TradeSkillMaster
+## AddonCompartmentFunc: ReelGold_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: ReelGold_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: ReelGold_OnAddonCompartmentLeave
+
+# Game data (update these files when WoW: Forever patches change fishing)
+Data\GameVersion.lua
+Data\Fish.lua
+Data\Locations.lua
+Data\Tips.lua
+
+# Addon code
+Core\Compat.lua
+Core\Util.lua
+Core\Pricing.lua
+Core\Tracker.lua
+Core\Recommend.lua
+UI\Widgets.lua
+UI\MainFrame.lua
+UI\HUD.lua
+UI\MinimapButton.lua
+Core\Init.lua
