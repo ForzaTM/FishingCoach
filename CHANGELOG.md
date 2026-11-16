@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Windows installer: finds WoW: Forever on your PC and installs, updates or removes ReelGold.
 - Spots where you already have your own catch data are no longer marked as too hard for your skill.
 - Added an offline test suite (`npm test`) that runs the addon against a mocked WoW API.
 

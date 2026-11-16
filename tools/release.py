@@ -86,17 +86,27 @@ def cmd_package(a):
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
     out = dist / f"ReelGold-{a.version}.zip"
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+    installer_out = dist / f"ReelGold-{a.version}-windows-installer.zip"
+    installer = ROOT / "tools" / "installer"
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z, \
+            zipfile.ZipFile(installer_out, "w", zipfile.ZIP_DEFLATED) as zi:
         for f in sorted(ROOT.rglob("*")):
             rel = f.relative_to(ROOT)
             if f.is_dir() or rel.parts[0] in PACKAGE_IGNORE:
                 continue
             arc = "ReelGold/" + rel.as_posix()
             if f.suffix in (".toc", ".lua"):
-                z.writestr(arc, read(f).replace("@project-version@", a.version))
+                data = read(f).replace("@project-version@", a.version)
+                z.writestr(arc, data)
+                zi.writestr(arc, data)
             else:
                 z.write(f, arc)
+                zi.write(f, arc)
+        # Windows installer bundle: launcher + script next to the ReelGold folder.
+        for name in ("Install-ReelGold.cmd", "install.ps1"):
+            zi.write(installer / name, name)
     print(out)
+    print(installer_out)
 
 
 def main():

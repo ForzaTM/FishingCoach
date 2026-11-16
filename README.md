@@ -5,6 +5,29 @@ number of minutes, ranks the most profitable fishing spots for your skill, and
 shows fishing tips that fit the moment. Item names and icons always come
 from the game client, so you see the real items.
 
+## Installing (Windows)
+Double-click `Install-ReelGold.cmd` (from the `...-windows-installer.zip`
+release, or in `tools/installer/` in this repository). It looks for
+WoW: Forever in the Windows registry, the Battle.net app's install list and the
+usual folders on every drive, shows what it found, and asks before installing
+into `World of Warcraft\_forever_\Interface\AddOns\ReelGold`. Running it again
+updates the addon. Your settings and fishing history live in the `WTF` folder
+and are never touched.
+
+Options (also work on the `.cmd`):
+
+| Option | What it does |
+|---|---|
+| `-ListOnly` | Only show the Forever folders found |
+| `-Path "D:\Games\World of Warcraft"` | Use this folder instead of searching |
+| `-Uninstall` | Remove ReelGold |
+| `-DeepScan` | Search all fixed drives if it isn't found in the usual places |
+| `-Yes` | No questions: use the first folder found (live before beta) |
+
+Manual install: copy the `ReelGold` folder into
+`World of Warcraft\_forever_\Interface\AddOns\`, so the path ends in
+`AddOns\ReelGold\ReelGold.toc`. With the CurseForge app, just install it from there.
+
 ## Features
 - **Session**: gold per time unit (counting active fishing time only), catches,
   coins looted, and a catch log with real item icons and values.
@@ -38,6 +61,8 @@ npm install
 npm test
 ```
 
+Installer tests (fake WoW folders in a temp directory): `npm run test:installer`.
+
 The mock uses Lua 5.3 while WoW uses Lua 5.1, and its item prices are test
 values. It proves the logic works; it can't prove how the real client draws
 the window, so still check it in game after big changes.
@@ -69,7 +94,9 @@ All game knowledge lives in `Data/` and every client API call goes through
   to `ReelGold.toc`, add a `CF_API_KEY` secret to the GitHub repository. Every
   `v*` tag then builds and uploads through `.github/workflows/release.yml`.
 - Manual: `python tools/release.py package --version 1.0.0` and upload
-  `dist/ReelGold-1.0.0.zip`.
+  `dist/ReelGold-1.0.0.zip`. It also builds
+  `dist/ReelGold-1.0.0-windows-installer.zip` for a GitHub release; don't
+  upload that one to CurseForge, whose zips must contain only the addon folder.
 
 ## Layout
 ```
@@ -82,5 +109,6 @@ Core/Recommend.lua    Spot ranking and context tips
 Core/Init.lua         Saved variables, migrations, events, slash commands
 UI/                   Main window, HUD, minimap button
 tools/release.py      bump / data / package helper
+tools/installer/      Windows installer (Install-ReelGold.cmd + install.ps1)
 tests/                Offline tests with a mocked WoW API (npm test)
 ```
