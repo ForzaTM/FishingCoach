@@ -103,17 +103,7 @@ local function BuildSession(p)
     end)
     reset:SetPoint("BOTTOMLEFT", 14, 12)
     local hud = W.Button(p, "Toggle HUD", 100, 22, function() ns.HUD.Toggle() end)
-    hud:SetPoint("LEFT", reset, "RIGHT", 8, 0)
-
-    -- Quick switch for the 5% AH cut: changes every value on screen at once.
-    p.cutCheck = W.Check(p, "Count 5% AH cut",
-        function() return ns.db.applyAHCut end,
-        function(v) ns.db.applyAHCut = v; ns:FireRefresh() end,
-        "On: totals and gold per time show what you receive after the Auction House keeps 5%.\n"
-        .. "Off: everything is counted at the full AH price.\n"
-        .. "The price each in the catch log is always the AH price.")
-    p.cutCheck:SetPoint("BOTTOMRIGHT", -128, 11)
-end
+    hud:SetPoint("LEFT", reset, "RIGHT", 8, 0)end
 
 local function RefreshSession(p)
     local T = ns.Tracker
@@ -152,7 +142,6 @@ local function RefreshSession(p)
     p.stats[5]:SetText(U.Money(T.TotalValue()))
 
     local list = T.SortedItems(s.items)
-    p.cutCheck:SetChecked(ns.db.applyAHCut)
     p.logHint:SetText(ns.db.applyAHCut and "price each as on the AH · total after 5% AH cut"
         or "price each · total")
     p.pager:SetTotal(#list)
@@ -600,6 +589,24 @@ local function BuildSettings(p)
         function(v) ns.db.minimap.hide = not v; ns.Minimap.Update() end)
     mmC:SetPoint("TOPLEFT", 12, line(26))
 
+    -- Updates: addons can't open links, so the URL sits in a box you can copy.
+    local upL = W.Text(p, "GameFontNormalSmall", "Updates: CurseForge app, or")
+    upL:SetPoint("BOTTOMLEFT", 18, 48)
+    local url = ns.GameVersion.UPDATE_URL
+    p.updateUrl = W.Edit(p, 250, false)
+    p.updateUrl:SetPoint("LEFT", upL, "RIGHT", 10, 0)
+    p.updateUrl:SetText(url)
+    p.updateUrl:SetCursorPosition(0)
+    p.updateUrl:SetScript("OnTextChanged", function(self) if self:GetText() ~= url then self:SetText(url) end end)
+    p.updateUrl:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+    p.updateUrl:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText("Copy link", 1, 1, 1)
+        GameTooltip:AddLine("Click, press Ctrl+C, and paste it in your browser.", nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    p.updateUrl:SetScript("OnLeave", GameTooltip_Hide)
+
     local wipe = W.Button(p, "Forget zone data", 130, 22, function() StaticPopup_Show("REELGOLD_WIPE_ZONES") end)
     wipe:SetPoint("BOTTOMLEFT", 14, 12)
     p.version = W.Text(p, "GameFontDisableSmall")
@@ -687,6 +694,29 @@ local function Create()
     frame.priceStatus:SetPoint("RIGHT", refreshBtn, "LEFT", -6, 0)
     frame.priceStatus:SetJustifyH("RIGHT")
 
+    -- Update notice banner, attached on top of the window (see ns.GetNotice).
+    local banner = W.Panel(frame, WIDTH, 44)
+    banner:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, -2)
+    banner:SetBackdropColor(0.12, 0.10, 0.02, 0.96)
+    banner:SetBackdropBorderColor(1, 0.82, 0, 1)
+    banner.icon = banner:CreateTexture(nil, "ARTWORK")
+    banner.icon:SetSize(28, 28)
+    banner.icon:SetPoint("LEFT", 10, 0)
+    banner.icon:SetTexture(ns.Icons.logo)
+    banner.text = W.Text(banner, "GameFontHighlightSmall")
+    banner.text:SetPoint("LEFT", banner.icon, "RIGHT", 8, 0)
+    banner.text:SetPoint("RIGHT", -30, 0)
+    banner.text:SetJustifyV("MIDDLE")
+    banner.close = CreateFrame("Button", nil, banner, "UIPanelCloseButton")
+    banner.close:SetSize(22, 22)
+    banner.close:SetPoint("TOPRIGHT", 0, 0)
+    banner.close:SetScript("OnClick", function()
+        if banner.key then ns.DismissNotice(banner.key) end
+        banner:Hide()
+    end)
+    banner:Hide()
+    frame.banner = banner
+
     local prev
     for _, t in ipairs(TABS) do
         local tabW = math.floor((WIDTH - 28 - 4 * (#TABS - 1)) / #TABS)
@@ -724,6 +754,14 @@ end
 function UI.Refresh()
     if not frame or not frame:IsShown() then return end
     frame.priceStatus:SetText(ns.Pricing.ShortStatus())
+    local notice = ns.GetNotice and ns.GetNotice()
+    frame.banner.key = notice and notice.key
+    if notice then
+        frame.banner.text:SetText("|cffffd100ReelGold:|r " .. notice.text)
+        frame.banner:Show()
+    else
+        frame.banner:Hide()
+    end
     for _, t in ipairs(TABS) do
         if t.key == current then t.refresh(panels[t.key]) end
     end

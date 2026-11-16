@@ -390,19 +390,23 @@ test("catch log shows the AH price exactly as Auctionator has it (real case from
     Mock.mapID = 1447
 end)
 
-test("Session tab toggle switches the 5% AH cut and updates the values on screen", function()
+local function inMainWindow(f)
+    local p = f.__parent
+    while p do if p == ReelGoldMainFrame then return true end p = p.__parent end
+    return false
+end
+
+test("AH cut toggle lives on the Settings tab and updates the values on screen", function()
     T.Reset()
     Mock.mapID = 1447
     FishFor(4, 15, { { {13422, 1} } }) -- 4 Stonescale Eels, AH price 7000c each (fake Auctionator)
     ReelGoldDB.applyAHCut = true
     ns.UI.Toggle("session"); ns.UI.Refresh()
-    local cb
     for _, f in ipairs(Mock.frames) do
-        if f.__kind == "CheckButton" and f.label and f.label.__text == "Count 5% AH cut" and f:IsShown() then cb = f end
+        check(not (f.label and f.label.__text == "Count 5% AH cut"), "no AH cut toggle on the Session tab any more")
     end
-    check(cb, "toggle is on the Session tab")
-    check(cb:GetChecked(), "starts on")
     local function eelRow()
+        ns.UI.Toggle("session"); ns.UI.Refresh()
         for _, f in ipairs(Mock.frames) do
             if f.count and f.name and f:IsShown() and f.name.__text == "Stonescale Eel" then
                 return (f.count.__text:gsub("|T[^|]+|t", "")), (f.total.__text:gsub("|T[^|]+|t", ""))
@@ -414,16 +418,65 @@ test("Session tab toggle switches the 5% AH cut and updates the values on screen
     eq(total, "2 66", "total after cut: 4 x 66s50c = 2g 66s")
     local rateOn = T.Rate()
 
+    ns.UI.Toggle("settings"); ns.UI.Refresh()
+    local cb
+    for _, f in ipairs(Mock.frames) do
+        if f.__kind == "CheckButton" and f.label and f.label.__text == "Subtract 5% Auction House cut"
+            and inMainWindow(f) and f:IsShown() then cb = f end
+    end
+    check(cb, "toggle is on the Settings tab")
     cb:SetChecked(false); cb.__scripts.OnClick(cb, "LeftButton"); Mock.FlushTimers()
     eq(ReelGoldDB.applyAHCut, false, "setting switched off")
     each, total = eelRow()
     check(each:find("@ 70 |", 1, true), "price each unchanged: " .. each)
     eq(total, "2 80", "total at full AH price: 4 x 70s = 2g 80s")
     near(T.Rate(), rateOn / 0.95, rateOn * 0.001, "gold per hour rises by the cut")
-
-    cb:SetChecked(true); cb.__scripts.OnClick(cb, "LeftButton"); Mock.FlushTimers()
-    eq(ReelGoldDB.applyAHCut, true, "back on")
+    ReelGoldDB.applyAHCut = true
     eq(select(2, eelRow()), "2 66", "total after cut again")
+end)
+
+test("update notice banner: WoW patched, ReelGold updated, dismiss, copyable link", function()
+    ns.UI.Toggle("session"); ns.UI.Refresh()
+    local banner = ReelGoldMainFrame.banner
+    check(not banner:IsShown(), "no banner normally")
+
+    -- WoW: Forever patched to a newer interface than ReelGold was made for.
+    Mock.interface = 16002
+    ns.UI.Refresh()
+    check(banner:IsShown(), "banner shown after a WoW patch")
+    check(banner.text.__text:find("interface 16002") and banner.text.__text:find("CurseForge"), banner.text.__text)
+    banner.close.__scripts.OnClick(banner.close, "LeftButton"); Mock.FlushTimers()
+    check(not banner:IsShown(), "dismissed")
+    ns.UI.Refresh()
+    check(not banner:IsShown(), "stays dismissed for this WoW version")
+    Mock.interface = 16003
+    ns.UI.Refresh()
+    check(banner:IsShown(), "comes back for the next WoW patch")
+    banner.close.__scripts.OnClick(banner.close, "LeftButton")
+    Mock.interface = nil
+
+    -- ReelGold itself updated between logins.
+    local savedVersion = ns.version
+    ns.version = "1.0.1"; Mock.Fire("PLAYER_LOGIN")
+    ns.UI.Refresh()
+    check(not banner:IsShown(), "first seen version: no notice")
+    ns.version = "1.0.2"; Mock.Fire("PLAYER_LOGIN")
+    ns.UI.Refresh()
+    check(banner:IsShown() and banner.text.__text:find("v1.0.1 %-> v1.0.2"), "updated notice: " .. tostring(banner.text.__text))
+    banner.close.__scripts.OnClick(banner.close, "LeftButton"); Mock.FlushTimers()
+    ns.UI.Refresh()
+    check(not banner:IsShown(), "updated notice dismissed")
+    ns.version = savedVersion
+
+    -- Settings shows the update link in a read-only box.
+    ns.UI.Toggle("settings"); ns.UI.Refresh()
+    local box
+    for _, f in ipairs(Mock.frames) do
+        if f.__kind == "EditBox" and f.__text == ns.GameVersion.UPDATE_URL then box = f end
+    end
+    check(box, "update link box on Settings")
+    box:SetText("typed over it"); box.__scripts.OnTextChanged(box)
+    eq(box:GetText(), ns.GameVersion.UPDATE_URL, "link cannot be edited")
 end)
 
 test("HUD has a close button that hides it until shown again", function()

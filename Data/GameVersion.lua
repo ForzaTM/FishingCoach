@@ -12,4 +12,6 @@ ns.GameVersion = {
     -- addon can tell users their spot estimates were refreshed.
     DATA_VERSION = 1,
     DATA_DATE = "2026-11-16",
+    -- Where players get updates (shown in Settings; addons can't open links).
+    UPDATE_URL = "https://github.com/ForzaTM/ReelGold/releases",
 }

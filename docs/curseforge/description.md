@@ -39,6 +39,7 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - Compact HUD you can drag anywhere, with a close button. It shows only while a fishing pole is equipped (optional).
 - Minimap button and Addon Compartment entry.
 - Every icon and item name comes straight from the game client, in your language.
+- Tells you when WoW: Forever was patched so you know to grab a ReelGold update (and what changed after updating).
 
 ## Commands
 `/rgold` (or `/reelgold`) opens the window. Add one of:

@@ -68,6 +68,13 @@ uiMapID) and `ReelGoldCharDB` (character: current session).
 Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|options|prices|hud|reset|minimap|version`.
 
 ## Key behaviours and why
+- **Update notices (no network):** owner chose NOT to use guild/group version messages
+  (keeps "sends nothing"). `ns.GetNotice()` in Init.lua: banner on top of the window when
+  client interface > TESTED_INTERFACE (dismiss per interface: `dismissedInterface`) or when
+  ReelGold's version changed since last login (`lastSeenVersion` / `updatedFrom`; never for "dev").
+  Settings has a read-only copyable `GameVersion.UPDATE_URL`.
+- **Policy guard:** `tests/run.js` fails if addon code calls message/cast/binding/AH-action APIs.
+- **AH cut toggle:** only on the Settings tab and Options page (owner moved it off the Session tab).
 - **Loot:** `LOOT_READY` and `LOOT_OPENED` both fire; a `handled` flag dedupes per
   loot window, reset on `LOOT_CLOSED`. Only `IsFishingLoot()` windows count.
   Coins come from the `GetMoney()` delta between ready and closed.

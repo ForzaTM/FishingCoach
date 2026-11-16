@@ -19,7 +19,8 @@ local DB_DEFAULTS = {
     lastTab = "session",
     seenDataVersion = 0,
     warnedInterface = 0,
-    hud = { shown = true, onlyWithPole = true, locked = false },
+    dismissedInterface = 0,
+    hud ={ shown = true, onlyWithPole = true, locked = false },
     main = {},
     minimap = { angle = 200, hide = false },
     priceOverrides = {},
@@ -62,6 +63,47 @@ local function VersionNotices()
     end
 end
 
+-- Remembers the installed ReelGold version so the window can say "updated".
+local function TrackAddonVersion()
+    local v = ns.version
+    if not v or v == "dev" then return end
+    local last = ns.db.lastSeenVersion
+    if last and last ~= v then ns.db.updatedFrom = last end
+    ns.db.lastSeenVersion = v
+end
+
+----------------------------------------------------------------------
+-- Update notices for the window banner. ReelGold never goes online or
+-- sends messages, so it only reports what it can detect by itself:
+--   "interface": WoW: Forever was patched after this ReelGold was made
+--                (a ReelGold update is then likely: CurseForge / GitHub)
+--   "updated":   ReelGold itself was updated since the last login
+----------------------------------------------------------------------
+function ns.GetNotice()
+    if not ns.db then return nil end
+    local gv = ns.GameVersion
+    local _, _, _, iface = GetBuildInfo()
+    if iface and iface > gv.TESTED_INTERFACE and ns.db.dismissedInterface ~= iface then
+        return { key = "interface", text = ("WoW: Forever was updated (interface %d). This ReelGold (v%s) was made for %d, "
+            .. "so an update is probably out: check the CurseForge app or the Updates link in Settings.")
+            :format(iface, ns.version, gv.TESTED_INTERFACE) }
+    end
+    if ns.db.updatedFrom then
+        return { key = "updated", text = ("ReelGold was updated: v%s -> v%s. What's new: see the changelog on CurseForge or GitHub.")
+            :format(ns.db.updatedFrom, ns.version) }
+    end
+end
+
+function ns.DismissNotice(key)
+    if key == "interface" then
+        local _, _, _, iface = GetBuildInfo()
+        ns.db.dismissedInterface = iface or 0
+    elseif key == "updated" then
+        ns.db.updatedFrom = nil
+    end
+    ns:FireRefresh()
+end
+
 local function PrimeItemCache()
     for id in pairs(ns.Fish) do ns.C.RequestItem(id) end
 end
@@ -90,6 +132,7 @@ events:SetScript("OnEvent", function(_, event, arg1)
         ns.Minimap.Update()
         ns.HUD.UpdateVisibility()
         VersionNotices()
+        TrackAddonVersion()
         events:RegisterEvent("LOOT_READY")
         events:RegisterEvent("LOOT_OPENED")
         events:RegisterEvent("LOOT_CLOSED")

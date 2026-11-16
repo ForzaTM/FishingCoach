@@ -1,7 +1,8 @@
 # Changelog
 
 ## Unreleased
-- Session tab: "Count 5% AH cut" toggle next to the buttons; switching it updates totals and gold per time at once. The gold-per-time label says whether the cut is applied.
+- The 5% AH cut toggle is on the Settings tab (and in Options); switching it updates totals and gold per time at once. The gold-per-time label says whether the cut is applied.
+- Update notices on top of the ReelGold window: when WoW: Forever is patched (a ReelGold update is then likely) and after ReelGold itself was updated. Settings shows a copyable link to the latest releases. ReelGold still sends nothing: no addon or chat messages.
 - Catch log shows each item's price exactly as on the Auction House (tagged AH / vendor / set); the total column is labelled "after 5% AH cut". Item tooltips show AH price, after-cut value, vendor price and what ReelGold counts.
 - Prices update by themselves after every Auctionator scan (and when you close the Auction House). New "Refresh prices" button and price status (source, how many fish have AH prices, how old) in the window title bar; `/rgold prices` does the same. Item tooltips show when Auctionator last saw the item.
 - ReelGold now uses its own logo (addon list, minimap button, window title, HUD, Options page and addon compartment) instead of the generic fishing icon.

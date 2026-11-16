@@ -30,6 +30,29 @@ const toc = fs.readFileSync("ReelGold.toc", "utf8")
   }
 }
 
+// Policy guard: ReelGold only reads and displays. It must never send chat or
+// addon messages, cast, use items/actions, change key bindings or touch the AH.
+{
+  const forbidden = new RegExp("\\b(" + [
+    "SendAddonMessage", "SendChatMessage", "C_ChatInfo\\.Send\\w*", "RegisterAddonMessagePrefix",
+    "CastSpell\\w*", "UseAction", "UseItemByName", "UseContainerItem",
+    "SetBinding\\w*", "SetOverrideBinding\\w*", "SecureActionButtonTemplate",
+    "C_AuctionHouse\\.(?:Post|Place|Start|Send)\\w*", "PlaceAuctionBid", "PostAuction",
+  ].join("|") + ")\\b");
+  const hits = [];
+  for (const f of toc) {
+    fs.readFileSync(f, "utf8").split(/\r?\n/).forEach((line, i) => {
+      const code = line.replace(/--.*$/, "");
+      if (forbidden.test(code)) hits.push(`${f}:${i + 1}: ${line.trim()}`);
+    });
+  }
+  console.log(`Policy check: ${hits.length} forbidden call(s) (messages, casting, bindings, AH actions)`);
+  if (hits.length) {
+    console.error(hits.join("\n"));
+    process.exit(1);
+  }
+}
+
 const L = lauxlib.luaL_newstate();
 lualib.luaL_openlibs(L);
 
