@@ -479,6 +479,67 @@ test("update notice banner: WoW patched, ReelGold updated, dismiss, copyable lin
     eq(box:GetText(), ns.GameVersion.UPDATE_URL, "link cannot be edited")
 end)
 
+test("Tips tab lists missing fishing gear and where to get it", function()
+    local function texts()
+        local t = {}
+        for _, a in ipairs(R.GearAdvice()) do t[#t + 1] = (a.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) end
+        return t
+    end
+    local function has(list, pattern)
+        for _, s in ipairs(list) do if s:find(pattern) then return true end end
+        return false
+    end
+    local savedPole = Mock.pole
+
+    -- Alliance, skill 300, only the basic Fishing Pole equipped, nothing in bags.
+    Mock.skill, Mock.faction, Mock.pole, Mock.bags, Mock.equipped, Mock.glovesEnchant =
+        { rank = 300, max = 300, mod = 0 }, "Alliance", 6256, {}, {}, nil
+    local t = texts()
+    check(has(t, "^Better pole: Arcanite Fishing Pole %(%+35, yours %+0%): Stranglethorn Fishing Extravaganza"), "pole upgrade")
+    check(not has(t, "FC%-5000"), "Horde-only pole hidden for Alliance")
+    check(has(t, "^Missing: lures%. Strongest for you: Aquadynamic Fish Attractor %(%+100%).*Cheaper: Nightcrawlers %(%+50%): Fishing supply vendors"), "lures")
+    check(has(t, "^Missing: Fishing Rack%. Blueprint: Fishing Rack drops from Gelihast in Blackfathom Deeps"), "fishing rack")
+    check(has(t, "^Missing: Fishing Hut%."), "fishing hut")
+    check(has(t, "^Missing: Fish Bowl%. Fishing technique from any fishing trainer"), "fish bowl")
+    check(has(t, "^Missing: Lucky Fishing Hat %(%+5%)%. Stranglethorn Fishing Extravaganza: turn in Keefer's Angelfish"), "hat")
+    check(has(t, "^Missing: Enchant Gloves %- Fishing %(%+2%) on your gloves"), "gloves enchant")
+    eq(#t, 9, "9 things missing")
+
+    -- Horde, skill 120 with a Strong Fishing Pole: FC-5000 next, Arcanite later, Hut at 300.
+    Mock.skill, Mock.faction, Mock.pole = { rank = 120, max = 150, mod = 0 }, "Horde", 6365
+    Mock.bags = { [6530] = 20 } -- Nightcrawlers in bags
+    t = texts()
+    check(has(t, "^Better pole: Nat Pagle's Extreme Angler FC%-5000 %(%+25, yours %+5%): Horde quest in The Hinterlands"), "FC-5000 for Horde")
+    check(has(t, "^Later, at skill 300: Arcanite Fishing Pole"), "Arcanite later")
+    check(has(t, "^Stronger lure: Aquadynamic Fish Attractor %(%+100, your best %+50%)"), "stronger lure than Nightcrawlers")
+    check(has(t, "^At skill 140: Fishing Rack%."), "rack needs 140")
+    check(has(t, "^At skill 300: Fishing Hut%."), "hut needs 300")
+
+    -- Everything owned: one happy line.
+    Mock.skill, Mock.pole = { rank = 300, max = 300, mod = 0 }, 19970
+    Mock.bags = { [6533] = 5, [279967] = 1, [279965] = 1, [279966] = 1, [19971] = 1 }
+    Mock.equipped = { [19972] = true, [19969] = true }
+    Mock.glovesEnchant = "845"
+    t = texts()
+    eq(#t, 1, "nothing missing")
+    check(t[1]:find("You have all the fishing gear"), t[1])
+
+    -- Fishing not learned.
+    Mock.skill = nil
+    t = texts()
+    eq(#t, 1); check(t[1]:find("Missing: the Fishing skill"), t[1])
+
+    -- Tips tab shows them with item icons and a count in the header.
+    Mock.skill, Mock.pole, Mock.bags, Mock.equipped, Mock.glovesEnchant = { rank = 300, max = 300, mod = 25 }, 6256, {}, {}, nil
+    ns.UI.Toggle("tips"); ns.UI.Refresh()
+    local tipsHeader
+    for _, f in ipairs(Mock.frames) do
+        if f.text and f.icon and f.icon.itemID == 19970 and f:IsShown() then tipsHeader = f end
+    end
+    check(tipsHeader, "Arcanite Fishing Pole row with its item icon on the Tips tab")
+    Mock.pole, Mock.faction = savedPole, "Alliance"
+end)
+
 test("HUD has a close button that hides it until shown again", function()
     ReelGoldDB.hud.shown, ReelGoldDB.hud.onlyWithPole = true, true
     Mock.pole = 6256

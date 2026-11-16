@@ -21,6 +21,7 @@ gives you fishing tips that fit the moment. Made for **World of Warcraft: Foreve
 - **Learns from your own catches:** after 40 catches in a zone, its ranking uses your real results instead of estimates. New Forever zones are ranked automatically as soon as you fish them.
 
 ### Tips that fit the moment
+- **Gear checklist:** shows the fishing gear you're still missing (better pole, lures, Fish Bowl, Fishing Rack, Fishing Hut, hat, boots, fishing line, gloves enchant) and exactly where to get each one.
 - No lure on your pole, or about to expire.
 - Skill capped, and where to train next (Old Man Heming, Nat Pagle).
 - Night or day: Nightfin Snapper vs Sunscale Salmon.

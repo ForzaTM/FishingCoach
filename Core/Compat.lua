@@ -107,6 +107,35 @@ function C.GetPoleState()
     return hasPole, hasLure, expiresMs
 end
 
+-- How many of an item you carry (bags) and whether it is equipped.
+function C.GetItemCount(id)
+    local n
+    if C_Item and C_Item.GetItemCount then n = C_Item.GetItemCount(id, true)
+    elseif GetItemCount then n = GetItemCount(id, true) end
+    if C.IsSecret(n) then return 0 end
+    return n or 0
+end
+
+function C.IsEquipped(id)
+    local f = (C_Item and C_Item.IsEquippedItem) or IsEquippedItem
+    return f ~= nil and f(id) == true
+end
+
+function C.Owns(id)
+    return C.GetItemCount(id) > 0 or C.IsEquipped(id)
+end
+
+function C.Faction()
+    return UnitFactionGroup and UnitFactionGroup("player") or nil
+end
+
+-- Enchant ID on the equipped gloves (slot 10), or nil.
+function C.GlovesEnchant()
+    local link = GetInventoryItemLink and GetInventoryItemLink("player", INVSLOT_HAND or 10)
+    if not link or C.IsSecret(link) then return nil end
+    return tonumber(link:match("item:%d+:(%d+)"))
+end
+
 function C.GetGameHour()
     local h = GetGameTime and GetGameTime()
     return h or tonumber(date("%H"))

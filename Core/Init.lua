@@ -106,6 +106,11 @@ end
 
 local function PrimeItemCache()
     for id in pairs(ns.Fish) do ns.C.RequestItem(id) end
+    for _, list in pairs(ns.Gear) do
+        if type(list) == "table" then
+            for _, e in ipairs(list) do if e.id then ns.C.RequestItem(e.id) end end
+        end
+    end
 end
 
 local events = CreateFrame("Frame")
@@ -141,6 +146,7 @@ events:SetScript("OnEvent", function(_, event, arg1)
         events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
         events:RegisterEvent("GET_ITEM_INFO_RECEIVED")
         events:RegisterEvent("SKILL_LINES_CHANGED")
+        events:RegisterEvent("BAG_UPDATE_DELAYED") -- gear checklist on the Tips tab
         -- Fallback for TSM and anything Auctionator's callback misses.
         events:RegisterEvent("AUCTION_HOUSE_CLOSED")
 

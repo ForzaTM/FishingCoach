@@ -201,3 +201,97 @@ function R.ContextTips()
     end
     return tips
 end
+
+----------------------------------------------------------------------
+-- Gear advice: what is missing to fish efficiently, and where to get it
+-- (shown on the Tips tab). Reads bags, bank and equipped items only.
+----------------------------------------------------------------------
+local function GearName(e)
+    return (e.id and ns.C.GetItemInfo(e.id)) or e.name
+end
+
+local function FactionOK(e, faction)
+    return not e.faction or not faction or e.faction == faction
+end
+
+function R.GearAdvice()
+    local out = {}
+    local function add(e, text) out[#out + 1] = { itemID = e.id, icon = e.icon, text = text, gear = true } end
+    local G = ns.Gear
+    local rank = ns.C.GetFishingSkill()
+    if not rank then
+        out[1] = { icon = ns.Icons.fishing, text = "|cffff5555Missing: the Fishing skill.|r Learn it from any fishing trainer in a capital or starting area.", gear = true }
+        return out
+    end
+    local skill, faction = rank, ns.C.Faction()
+
+    -- Pole: best one you own vs. the best you could use now / later.
+    local owned = -1
+    for _, p in ipairs(G.poles) do
+        if ns.C.Owns(p.id) and p.bonus > owned then owned = p.bonus end
+    end
+    local nextPole, topPole
+    for _, p in ipairs(G.poles) do
+        if p.bonus > owned and FactionOK(p, faction) then
+            if p.minSkill <= skill and (not nextPole or p.bonus > nextPole.bonus) then nextPole = p end
+            if not topPole or p.bonus > topPole.bonus then topPole = p end
+        end
+    end
+    if owned < 0 then
+        local p = nextPole or G.poles[1]
+        add(p, ("|cffff5555Missing: a fishing pole.|r Best for you now: %s (+%d): %s."):format(GearName(p), p.bonus, p.source))
+    elseif nextPole then
+        add(nextPole, ("|cffff5555Better pole:|r %s (+%d, yours +%d): %s."):format(GearName(nextPole), nextPole.bonus, owned, nextPole.source))
+    end
+    if topPole and topPole ~= nextPole and topPole.minSkill > skill then
+        add(topPole, ("|cffffaa00Later, at skill %d:|r %s (+%d): %s."):format(topPole.minSkill, GearName(topPole), topPole.bonus, topPole.source))
+    end
+
+    -- Lures in your bags vs. the strongest you can use.
+    local bestOwnedLure, bestUsable, cheap = nil, nil, nil
+    for _, l in ipairs(G.lures) do
+        if ns.C.GetItemCount(l.id) > 0 and (not bestOwnedLure or l.bonus > bestOwnedLure) then bestOwnedLure = l.bonus end
+        if l.minSkill <= skill then
+            if not bestUsable or l.bonus > bestUsable.bonus then bestUsable = l end
+            if l.source:find("vendors") and (not cheap or l.bonus > cheap.bonus) then cheap = l end
+        end
+    end
+    if bestUsable and not bestOwnedLure then
+        local txt = ("|cffff5555Missing: lures.|r Strongest for you: %s (+%d): %s."):format(GearName(bestUsable), bestUsable.bonus, bestUsable.source)
+        if cheap and cheap ~= bestUsable then
+            txt = txt .. (" Cheaper: %s (+%d): %s."):format(GearName(cheap), cheap.bonus, cheap.source)
+        end
+        add(bestUsable, txt)
+    elseif bestUsable and bestUsable.bonus > bestOwnedLure then
+        add(bestUsable, ("|cffffaa00Stronger lure:|r %s (+%d, your best +%d): %s."):format(GearName(bestUsable), bestUsable.bonus, bestOwnedLure, bestUsable.source))
+    end
+
+    -- Forever camping utilities.
+    for _, c in ipairs(G.camping) do
+        if not ns.C.Owns(c.id) then
+            if skill >= c.minSkill then
+                add(c, ("|cffff5555Missing: %s.|r %s. %s"):format(GearName(c), c.source, c.note))
+            else
+                add(c, ("|cffffaa00At skill %d: %s.|r %s. %s"):format(c.minSkill, GearName(c), c.source, c.note))
+            end
+        end
+    end
+
+    -- Hat, boots, fishing line.
+    for _, g in ipairs(G.gear) do
+        if not ns.C.Owns(g.id) then
+            add(g, ("|cffff5555Missing: %s (+%d).|r %s.%s"):format(GearName(g), g.bonus, g.source, g.note and (" " .. g.note) or ""))
+        end
+    end
+
+    -- Fishing enchant on gloves.
+    local ge = G.glovesEnchant
+    if ns.C.GlovesEnchant() ~= ge.enchantID then
+        add(ge, ("|cffff5555Missing: %s (+%d) on your gloves.|r %s."):format(ge.name, ge.bonus, ge.source))
+    end
+
+    if #out == 0 then
+        out[1] = { icon = ns.Icons.pole, text = "|cff33ff33You have all the fishing gear ReelGold knows about.|r", gear = true }
+    end
+    return out
+end

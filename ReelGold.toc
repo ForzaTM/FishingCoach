@@ -17,6 +17,7 @@ Data\GameVersion.lua
 Data\Fish.lua
 Data\Locations.lua
 Data\Tips.lua
+Data\Gear.lua
 
 # Addon code
 Core\Compat.lua

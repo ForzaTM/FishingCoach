@@ -50,6 +50,8 @@ Data/GameVersion.lua  TESTED_INTERFACE / TESTED_CLIENT / DATA_VERSION / DATA_DAT
 Data/Fish.lua         itemID -> use hint; ns.Icons (UI texture paths)
 Data/Locations.lua    seed spots: mapID, minSkill, catchesPerHour, junkCopper, loot shares
 Data/Tips.lua         general tips
+Data/Gear.lua         fishing gear (poles, lures, hat/boots/line, gloves enchant 845, Forever camping
+                      items Fish Bowl 279967 / Fishing Rack 279965 / Fishing Hut 279966) + sources
 Core/Compat.lua       EVERY WoW API call goes through ns.C (the one place to fix after patches)
 Core/Util.lua         money/duration formatting, debounce, print
 Core/Pricing.lua      manual override > Auctionator > TSM > vendor; 5% AH cut option
@@ -73,6 +75,10 @@ Slash: `/rgold` or `/reelgold` with `show|session|best|spots|tips|settings|optio
   client interface > TESTED_INTERFACE (dismiss per interface: `dismissedInterface`) or when
   ReelGold's version changed since last login (`lastSeenVersion` / `updatedFrom`; never for "dev").
   Settings has a read-only copyable `GameVersion.UPDATE_URL`.
+- **Gear checklist** (`R.GearAdvice`, Tips tab): owned = bags+bank count or equipped; pole
+  advice is faction-aware; lures recommend strongest usable + cheapest vendor one; camping items
+  show "At skill N" below their skill. Gloves enchant ID 845 is from classic data (unverified in Forever).
+  Hut blueprint drop source was undocumented on 2026-11-16.
 - **Policy guard:** `tests/run.js` fails if addon code calls message/cast/binding/AH-action APIs.
 - **AH cut toggle:** only on the Settings tab and Options page (owner moved it off the Session tab).
 - **Loot:** `LOOT_READY` and `LOOT_OPENED` both fire; a `handled` flag dedupes per

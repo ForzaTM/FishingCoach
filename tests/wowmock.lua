@@ -267,6 +267,30 @@ GetProfessionInfo = function(idx)
 end
 
 GetInventoryItemID = function(_, slot) if slot == 16 then return Mock.pole end end
+
+-- Bags / equipment / faction for the gear checklist.
+Mock.bags = {}          -- [itemID] = count (bags + bank)
+Mock.equipped = {}      -- [itemID] = true (besides the pole in Mock.pole)
+Mock.faction = "Alliance"
+Mock.glovesEnchant = nil
+C_Item.GetItemCount = function(id) return Mock.bags[id] or 0 end
+C_Item.IsEquippedItem = function(id) return id == Mock.pole or Mock.equipped[id] == true end
+UnitFactionGroup = function() return Mock.faction, Mock.faction end
+GetInventoryItemLink = function(_, slot)
+    if slot == 10 then return ("|cffffffff|Hitem:9999:%s::::::::60:::::|h[Gloves]|h|r"):format(Mock.glovesEnchant or "") end
+    if slot == 16 and Mock.pole then return ("|cffffffff|Hitem:%d::::::::60:::::|h[Pole]|h|r"):format(Mock.pole) end
+end
+for id, it in pairs({
+    [6365] = { "Strong Fishing Pole", 1, 1, 0, 2, 20 }, [12225] = { "Blump Family Fishing Pole", 2, 1, 1, 2, 20 },
+    [6367] = { "Big Iron Fishing Pole", 1, 10, 0, 2, 20 }, [19022] = { "Nat Pagle's Extreme Angler FC-5000", 3, 10, 1, 2, 20 },
+    [19970] = { "Arcanite Fishing Pole", 4, 10, 1, 2, 20 },
+    [6529] = { "Shiny Bauble", 1, 25, 0, 0, 0 }, [6530] = { "Nightcrawlers", 1, 5, 0, 0, 0 },
+    [6811] = { "Aquadynamic Fish Lens", 1, 50, 0, 0, 0 }, [6532] = { "Bright Baubles", 1, 100, 0, 0, 0 },
+    [7307] = { "Flesh Eating Worm", 1, 10, 0, 0, 0 }, [6533] = { "Aquadynamic Fish Attractor", 1, 100, 0, 0, 0 },
+    [19972] = { "Lucky Fishing Hat", 3, 1, 1, 4, 1 }, [19969] = { "Nat Pagle's Extreme Anglin' Boots", 3, 1, 1, 4, 1 },
+    [19971] = { "High Test Eternium Fishing Line", 3, 1, 1, 0, 0 },
+    [279967] = { "Fish Bowl", 1, 0, 0, 0, 0 }, [279965] = { "Fishing Rack", 2, 0, 0, 0, 0 }, [279966] = { "Fishing Hut", 3, 0, 0, 0, 0 },
+}) do Mock.items[id] = Mock.items[id] or it end
 GetWeaponEnchantInfo = function() return Mock.lure, Mock.lure and Mock.lureMs or 0 end
 
 IsFishingLoot = function() return Mock.loot ~= nil and Mock.loot.fishing == true end

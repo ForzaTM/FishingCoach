@@ -431,10 +431,9 @@ local function BuildTips(p)
         local row = CreateFrame("Frame", nil, p)
         row:SetSize(WIDTH - 40, 58)
         row:SetPoint("TOPLEFT", 14, -40 - (i - 1) * 60)
-        row.icon = row:CreateTexture(nil, "ARTWORK")
-        row.icon:SetSize(30, 30)
+        -- Item icon with tooltip (gear rows), or a plain icon (tips).
+        row.icon = W.ItemIcon(row, 30)
         row.icon:SetPoint("TOPLEFT", 0, -2)
-        row.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         row.text = W.Text(row, "GameFontHighlightSmall")
         row.text:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, 0)
         row.text:SetPoint("RIGHT", 0, 0)
@@ -447,9 +446,17 @@ local function BuildTips(p)
 end
 
 local function RefreshTips(p)
-    local list = {}
+    -- Order: what matters right now, then missing gear, then general tips.
+    local list, missing = {}, 0
     for _, t in ipairs(ns.Recommend.ContextTips()) do list[#list + 1] = t end
+    for _, t in ipairs(ns.Recommend.GearAdvice()) do
+        list[#list + 1] = t
+        if t.itemID or t.icon ~= ns.Icons.pole then missing = missing + 1 end
+    end
     for _, t in ipairs(ns.Tips) do list[#list + 1] = t end
+    p.header:SetText(U.Icon(ns.Icons.book) .. " Fishing tips"
+        .. (missing > 0 and ("   |cffff5555%d gear item%s to get|r"):format(missing, missing == 1 and "" or "s")
+            or "   |cff33ff33all fishing gear found|r"))
     p.pager:SetTotal(#list)
     p.pager.label:SetText(("%d / %d"):format(p.pager.page, p.pager:Pages()))
     p.pager.prev:SetEnabled(p.pager.page > 1)
@@ -458,7 +465,12 @@ local function RefreshTips(p)
     for i, row in ipairs(p.rows) do
         local t = list[offset + i]
         if t then
-            row.icon:SetTexture(t.icon or ns.Icons.fishing)
+            if t.itemID then
+                row.icon:SetItem(t.itemID)
+                if not ns.C.GetItemInfo(t.itemID) then ns.C.RequestItem(t.itemID) end
+            else
+                row.icon:SetTex(t.icon or ns.Icons.fishing)
+            end
             row.text:SetText((t.context and "|cffffd100Now:|r " or "") .. t.text)
             row:Show()
         else

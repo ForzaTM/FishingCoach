@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Tips tab: checklist of fishing gear you're missing and where to get it: better pole (faction-aware), strongest usable lure, Fish Bowl / Fishing Rack / Fishing Hut, Lucky Fishing Hat, Anglin' Boots, Eternium Fishing Line and the gloves fishing enchant. Checks your bags, bank and equipped items; item icons with tooltips.
 - The 5% AH cut toggle is on the Settings tab (and in Options); switching it updates totals and gold per time at once. The gold-per-time label says whether the cut is applied.
 - Update notices on top of the ReelGold window: when WoW: Forever is patched (a ReelGold update is then likely) and after ReelGold itself was updated. Settings shows a copyable link to the latest releases. ReelGold still sends nothing: no addon or chat messages.
 - Catch log shows each item's price exactly as on the Auction House (tagged AH / vendor / set); the total column is labelled "after 5% AH cut". Item tooltips show AH price, after-cut value, vendor price and what ReelGold counts.
