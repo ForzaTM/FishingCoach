@@ -9,6 +9,7 @@ ignore:
   - .github
   - .gitignore
   - .editorconfig
+  - .gitattributes
 
 manual-changelog:
   filename: CHANGELOG.md
