@@ -52,8 +52,14 @@ Test 'installs into _forever_\Interface\AddOns\ReelGold (creates AddOns)' {
     Check (Test-Path (Join-Path $addon 'UI\MainFrame.lua')) 'UI missing'
     Check (-not (Test-Path (Join-Path $addon 'tests'))) 'tests copied'
     Check (-not (Test-Path (Join-Path $addon 'tools'))) 'tools copied'
+    Check (-not (Test-Path (Join-Path $addon 'docs'))) 'docs copied'
+    Check (Test-Path (Join-Path $addon 'Media\Icon.tga')) 'logo texture missing'
+    # Expected: every file listed in the TOC + the TOC + LICENSE + Media files.
+    $tocFiles = @(Get-Content (Join-Path $repo 'ReelGold.toc') | Where-Object { $_.Trim() -and -not $_.Trim().StartsWith('#') }).Count
+    $mediaFiles = @(Get-ChildItem (Join-Path $repo 'Media') -Recurse -File).Count
+    $expected = $tocFiles + 2 + $mediaFiles
     $count = (Get-ChildItem $addon -Recurse -File).Count
-    Check ($count -eq 16) "expected 16 files, got $count"
+    Check ($count -eq $expected) "expected $expected files, got $count"
     Check ($r.Out -match 'Installed ReelGold dev') "message:`n$($r.Out)"
 }
 

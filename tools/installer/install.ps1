@@ -72,6 +72,11 @@ function Get-AddonSource {
         if ($l -and -not $l.StartsWith('#')) { $files += $l }
     }
     if (Test-Path (Join-Path $repo 'LICENSE')) { $files += 'LICENSE' }
+    # Textures (logo) are not listed in the TOC.
+    $media = Join-Path $repo 'Media'
+    if (Test-Path $media) {
+        $files += @(Get-ChildItem $media -Recurse -File | ForEach-Object { $_.FullName.Substring($repo.Length + 1) })
+    }
     return @{ Root = $repo; Files = $files }
 }
 

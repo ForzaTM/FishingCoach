@@ -14,6 +14,22 @@ const toc = fs.readFileSync("ReelGold.toc", "utf8")
   .filter((l) => l && !l.startsWith("#"))
   .map((l) => l.replace(/\\/g, "/"));
 
+// Every texture the addon points at inside its own folder must exist
+// (WoW silently shows a green square for a missing texture).
+{
+  const sources = ["ReelGold.toc", ...toc].map((f) => fs.readFileSync(f, "utf8")).join("\n");
+  const refs = new Set();
+  for (const m of sources.matchAll(/Interface(?:\\\\|\\)AddOns(?:\\\\|\\)ReelGold(?:\\\\|\\)([A-Za-z0-9_\\]+)/g)) {
+    refs.add(m[1].replace(/\\+/g, "/"));
+  }
+  const missing = [...refs].filter((r) => ![".tga", ".blp", ".png"].some((ext) => fs.existsSync(r + ext)));
+  console.log(`Texture check: ${refs.size} addon texture path(s) referenced, ${missing.length} missing`);
+  if (refs.size === 0 || missing.length) {
+    console.error("Missing textures: " + missing.join(", "));
+    process.exit(1);
+  }
+}
+
 const L = lauxlib.luaL_newstate();
 lualib.luaL_openlibs(L);
 

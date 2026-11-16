@@ -37,7 +37,9 @@ time unit, ranks the most profitable fishing spots, and shows fishing tips.
   performance, no ads, no in-game donation requests, teen-rated content, follow
   ToU/EULA, Blizzard may disable features. Questions: WoWUI@blizzard.com.
 - Icons and item names must be real: always read them from the client by item ID
-  (`ns.C.GetItemIcon`, `ns.C.GetItemInfo`), never bundle images.
+  (`ns.C.GetItemIcon`, `ns.C.GetItemInfo`). The only bundled image is our own logo
+  `Media/Icon.tga` (`ns.Icons.logo`), used for branding spots only; skill/fishing
+  meaning keeps Blizzard's `Trade_Fishing`.
 - The owner wants clarifying questions when something is ambiguous, and
   confirmation before outward-facing actions (pushing tags/releases, publishing).
 
@@ -59,6 +61,7 @@ UI/HUD.lua            222x62 movable tracker with close (X) button; X sets hud.s
 UI/MinimapButton.lua  library-free minimap button + Addon Compartment functions
 UI/OptionsPanel.lua   Options -> AddOns page (Settings.RegisterCanvasLayoutCategory), registered on PLAYER_LOGIN
 Core/Init.lua         saved vars, MIGRATIONS, events, slash commands (loaded last)
+Media/Icon.tga        128x128 32-bit TGA logo (built from docs/art/icon.svg by `npm run icon`)
 ```
 Saved variables: `ReelGoldDB` (account: settings, priceOverrides, zoneStats keyed by
 uiMapID) and `ReelGoldCharDB` (character: current session).
@@ -118,6 +121,10 @@ finds `D:\Games\World of Warcraft\_forever_`.
 Repo mode copies only TOC-listed files + LICENSE; bundle mode copies `.\ReelGold\`.
 
 ## Gotchas already hit
+- Textures: WoW reliably loads TGA/BLP (power-of-two sizes), referenced without extension.
+  `tests/run.js` fails if a referenced `Interface\AddOns\ReelGold\...` texture is missing.
+  The installer copies `Media/` in repo mode (it is not listed in the TOC).
+  New files (TOC entries or textures) need a full client restart, not `/reload`.
 - Workflow `GITHUB_TOKEN` is read-only by default: release.yml needs
   `permissions: contents: write` (v1.0.0 release failed with 403, then created manually).
   A tag run uses the workflow file *from the tagged commit*.

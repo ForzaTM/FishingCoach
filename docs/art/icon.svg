@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- ReelGold in-game icon: the logo without the wordmark, readable at 16-64 px. -->
+  <defs>
+    <linearGradient id="coin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0a8"/>
+      <stop offset="0.45" stop-color="#f2c94c"/>
+      <stop offset="1" stop-color="#b8860b"/>
+    </linearGradient>
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0" stop-color="#1d5566"/>
+      <stop offset="1" stop-color="#081a21"/>
+    </radialGradient>
+  </defs>
+  <circle cx="64" cy="64" r="62" fill="url(#bg)" stroke="#8a6510" stroke-width="4"/>
+  <circle cx="64" cy="68" r="46" fill="url(#coin)" stroke="#7a5a0e" stroke-width="4"/>
+  <circle cx="64" cy="68" r="37" fill="none" stroke="#a87a12" stroke-width="2.5" stroke-dasharray="2 5" stroke-linecap="round"/>
+  <path d="M10 26 Q 46 30 64 34" fill="none" stroke="#e8f4f6" stroke-width="2.5"/>
+  <g transform="translate(34 29)">
+    <path d="M -11 0 A 11 11 0 0 1 11 0 Z" fill="#d13a2f"/>
+    <path d="M -11 0 A 11 11 0 0 0 11 0 Z" fill="#f5f5f0"/>
+    <circle r="11" fill="none" stroke="#3a1410" stroke-width="2.5"/>
+  </g>
+  <g fill="none" stroke="#4a3306" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="64" cy="38" r="5" stroke-width="4.5"/>
+    <path d="M64 44 V 84 A 19 19 0 0 1 26 84 V 74" stroke-width="8"/>
+    <path d="M26 74 L 35 84" stroke-width="6"/>
+  </g>
+  <path d="M66.5 50 V 82" stroke="#fff3b8" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+</svg>

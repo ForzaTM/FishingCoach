@@ -88,6 +88,7 @@ function W.ItemIcon(parent, size)
     b.border:Hide()
     function b:SetItem(id)
         self.itemID = id
+        self.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         self.icon:SetTexture(id and ns.C.GetItemIcon(id) or ns.Icons.question)
         local quality = id and select(3, ns.C.GetItemInfo(id))
         if quality and quality >= 2 then
@@ -97,9 +98,12 @@ function W.ItemIcon(parent, size)
             self.border:Hide()
         end
     end
-    function b:SetTex(tex)
+    -- full = true shows the whole texture (our round logo) instead of the
+    -- usual icon crop that hides the square border of WoW icons.
+    function b:SetTex(tex, full)
         self.itemID = nil
         self.icon:SetTexture(tex)
+        if full then self.icon:SetTexCoord(0, 1, 0, 1) else self.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
         self.border:Hide()
     end
     b:SetScript("OnEnter", function(self)

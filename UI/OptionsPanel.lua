@@ -13,10 +13,9 @@ local function Build()
     panel.name = "ReelGold" -- used by the legacy InterfaceOptions fallback
 
     local logo = panel:CreateTexture(nil, "ARTWORK")
-    logo:SetSize(36, 36)
-    logo:SetPoint("TOPLEFT", 16, -16)
-    logo:SetTexture(ns.Icons.fishing)
-    logo:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    logo:SetSize(40, 40)
+    logo:SetPoint("TOPLEFT", 14, -14)
+    logo:SetTexture(ns.Icons.logo)
 
     local title = W.Text(panel, "GameFontNormalHuge", "Reel|cffffd100Gold|r")
     title:SetPoint("TOPLEFT", logo, "TOPRIGHT", 10, -2)

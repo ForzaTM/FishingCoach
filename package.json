@@ -4,9 +4,11 @@
   "description": "Offline test harness for the ReelGold WoW addon (runs the addon Lua against a mocked WoW API).",
   "scripts": {
     "test": "node tests/run.js",
-    "test:installer": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/installer.tests.ps1"
+    "test:installer": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/installer.tests.ps1",
+    "icon": "node tools/make_icon.js"
   },
   "devDependencies": {
-    "fengari": "0.1.4"
+    "fengari": "0.1.4",
+    "pngjs": "7.0.0"
   }
 }

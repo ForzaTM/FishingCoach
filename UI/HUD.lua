@@ -88,7 +88,7 @@ function HUD.Refresh()
         f.line3:SetText("Total " .. U.Money(T.TotalValue(), true))
     else
         local hasPole, hasLure = ns.C.GetPoleState()
-        f.icon:SetTex(ns.Icons.fishing)
+        f.icon:SetTex(ns.Icons.logo, true)
         f.line3:SetText(hasPole and not hasLure and "|cffffaa00No lure!|r" or "Cast your line...")
     end
 end

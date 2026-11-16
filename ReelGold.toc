@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: |TInterface\Icons\Trade_Fishing:16|t Reel|cffffd100Gold|r
+## Title: |TInterface\AddOns\ReelGold\Media\Icon:16|t Reel|cffffd100Gold|r
 ## Notes: Fishing gold-per-time tracker, best profitable fishing spots and tips for World of Warcraft: Forever.
 ## Author: ReelGold
 ## Version: @project-version@
 ## Category: Professions
-## IconTexture: Interface\Icons\Trade_Fishing
+## IconTexture: Interface\AddOns\ReelGold\Media\Icon
 ## SavedVariables: ReelGoldDB
 ## SavedVariablesPerCharacter: ReelGoldCharDB
 ## OptionalDeps: Auctionator, TradeSkillMaster

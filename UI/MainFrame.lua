@@ -638,10 +638,9 @@ local function Create()
     _G.ReelGoldMainFrame = frame
 
     local logo = frame:CreateTexture(nil, "ARTWORK")
-    logo:SetSize(26, 26)
-    logo:SetPoint("TOPLEFT", 10, -8)
-    logo:SetTexture(ns.Icons.fishing)
-    logo:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    logo:SetSize(28, 28)
+    logo:SetPoint("TOPLEFT", 9, -7)
+    logo:SetTexture(ns.Icons.logo)
     local title = W.Text(frame, "GameFontNormalLarge", "Reel|cffffd100Gold|r")
     title:SetPoint("LEFT", logo, "RIGHT", 8, 0)
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")

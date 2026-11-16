@@ -45,10 +45,9 @@ local function Create()
     bg:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
     bg:SetPoint("TOPLEFT", 7, -5)
     local icon = btn:CreateTexture(nil, "ARTWORK")
-    icon:SetSize(17, 17)
-    icon:SetTexture(ns.Icons.fishing)
-    icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
-    icon:SetPoint("TOPLEFT", 7, -6)
+    icon:SetSize(21, 21)
+    icon:SetTexture(ns.Icons.logo)
+    icon:SetPoint("TOPLEFT", 5, -4)
 
     btn:SetScript("OnClick", function(_, button)
         if button == "RightButton" then ns.HUD.Toggle() else ns.UI.Toggle() end

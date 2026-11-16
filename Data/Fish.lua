@@ -41,8 +41,10 @@ ns.Fish = {
     [13926] = { use = "Golden Pearl - Jewelcrafting / Enchanting demand" },
 }
 
--- Fishing gear icons used for UI decoration (real client textures).
+-- Icons used for UI decoration: the ReelGold logo (our own texture) plus real
+-- client textures for everything else.
 ns.Icons = {
+    logo      = "Interface\\AddOns\\ReelGold\\Media\\Icon",
     fishing   = "Interface\\Icons\\Trade_Fishing",
     pole      = "Interface\\Icons\\INV_Fishingpole_02",
     coin      = "Interface\\Icons\\INV_Misc_Coin_01",
