@@ -390,6 +390,42 @@ test("catch log shows the AH price exactly as Auctionator has it (real case from
     Mock.mapID = 1447
 end)
 
+test("Session tab toggle switches the 5% AH cut and updates the values on screen", function()
+    T.Reset()
+    Mock.mapID = 1447
+    FishFor(4, 15, { { {13422, 1} } }) -- 4 Stonescale Eels, AH price 7000c each (fake Auctionator)
+    ReelGoldDB.applyAHCut = true
+    ns.UI.Toggle("session"); ns.UI.Refresh()
+    local cb
+    for _, f in ipairs(Mock.frames) do
+        if f.__kind == "CheckButton" and f.label and f.label.__text == "Count 5% AH cut" and f:IsShown() then cb = f end
+    end
+    check(cb, "toggle is on the Session tab")
+    check(cb:GetChecked(), "starts on")
+    local function eelRow()
+        for _, f in ipairs(Mock.frames) do
+            if f.count and f.name and f:IsShown() and f.name.__text == "Stonescale Eel" then
+                return (f.count.__text:gsub("|T[^|]+|t", "")), (f.total.__text:gsub("|T[^|]+|t", ""))
+            end
+        end
+    end
+    local each, total = eelRow()
+    check(each:find("@ 70 |", 1, true), "price each = AH price: " .. each)
+    eq(total, "2 66", "total after cut: 4 x 66s50c = 2g 66s")
+    local rateOn = T.Rate()
+
+    cb:SetChecked(false); cb.__scripts.OnClick(cb, "LeftButton"); Mock.FlushTimers()
+    eq(ReelGoldDB.applyAHCut, false, "setting switched off")
+    each, total = eelRow()
+    check(each:find("@ 70 |", 1, true), "price each unchanged: " .. each)
+    eq(total, "2 80", "total at full AH price: 4 x 70s = 2g 80s")
+    near(T.Rate(), rateOn / 0.95, rateOn * 0.001, "gold per hour rises by the cut")
+
+    cb:SetChecked(true); cb.__scripts.OnClick(cb, "LeftButton"); Mock.FlushTimers()
+    eq(ReelGoldDB.applyAHCut, true, "back on")
+    eq(select(2, eelRow()), "2 66", "total after cut again")
+end)
+
 test("HUD has a close button that hides it until shown again", function()
     ReelGoldDB.hud.shown, ReelGoldDB.hud.onlyWithPole = true, true
     Mock.pole = 6256

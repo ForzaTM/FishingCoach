@@ -104,6 +104,15 @@ local function BuildSession(p)
     reset:SetPoint("BOTTOMLEFT", 14, 12)
     local hud = W.Button(p, "Toggle HUD", 100, 22, function() ns.HUD.Toggle() end)
     hud:SetPoint("LEFT", reset, "RIGHT", 8, 0)
+
+    -- Quick switch for the 5% AH cut: changes every value on screen at once.
+    p.cutCheck = W.Check(p, "Count 5% AH cut",
+        function() return ns.db.applyAHCut end,
+        function(v) ns.db.applyAHCut = v; ns:FireRefresh() end,
+        "On: totals and gold per time show what you receive after the Auction House keeps 5%.\n"
+        .. "Off: everything is counted at the full AH price.\n"
+        .. "The price each in the catch log is always the AH price.")
+    p.cutCheck:SetPoint("BOTTOMRIGHT", -128, 11)
 end
 
 local function RefreshSession(p)
@@ -127,7 +136,8 @@ local function RefreshSession(p)
     p.status:SetText(U.Icon(ns.Icons.lure, 12) .. " " .. status)
 
     p.rate:SetText(U.Money(T.Rate(), true))
-    p.rateLabel:SetText("Gold " .. T.UnitLabel() .. "  |cff999999(active fishing time only)|r")
+    p.rateLabel:SetText("Gold " .. T.UnitLabel() .. "  |cff999999(active fishing time only"
+        .. (ns.db.applyAHCut and ", after 5% AH cut)|r" or ", full AH prices)|r"))
     local u = ns.db.timeUnit
     p.unitBtn:SetText(u == "minute" and "Per minute" or u == "custom" and "Custom" or "Per hour")
     p.customEdit:SetShown(u == "custom")
@@ -142,6 +152,7 @@ local function RefreshSession(p)
     p.stats[5]:SetText(U.Money(T.TotalValue()))
 
     local list = T.SortedItems(s.items)
+    p.cutCheck:SetChecked(ns.db.applyAHCut)
     p.logHint:SetText(ns.db.applyAHCut and "price each as on the AH · total after 5% AH cut"
         or "price each · total")
     p.pager:SetTotal(#list)
