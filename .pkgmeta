@@ -6,6 +6,7 @@ ignore:
   - README.md
   - CHANGELOG.md
   - CLAUDE.md
+  - docs
   - tools
   - .github
   - .gitignore

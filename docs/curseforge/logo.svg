@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#1d5566"/>
+      <stop offset="1" stop-color="#081a21"/>
+    </radialGradient>
+    <linearGradient id="coin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0a8"/>
+      <stop offset="0.45" stop-color="#f2c94c"/>
+      <stop offset="1" stop-color="#b8860b"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6dd7a"/>
+      <stop offset="1" stop-color="#8a6510"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="6" y="6" width="388" height="388" rx="44" fill="url(#bg)" stroke="url(#rim)" stroke-width="10"/>
+
+  <path d="M6 300 C 70 282, 120 318, 200 300 S 330 282, 394 300 L 394 350 Q 394 394 350 394 L 50 394 Q 6 394 6 350 Z" fill="#0f3a47" opacity="0.85"/>
+  <path d="M30 318 C 90 304, 140 332, 200 318 S 310 304, 370 318" fill="none" stroke="#3fa7b8" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+
+  <circle cx="200" cy="205" r="108" fill="#5c420a" opacity="0.55"/>
+  <circle cx="200" cy="200" r="106" fill="url(#coin)" stroke="#7a5a0e" stroke-width="6"/>
+  <circle cx="200" cy="200" r="86" fill="none" stroke="#a87a12" stroke-width="5" stroke-dasharray="3 9" stroke-linecap="round"/>
+
+  <path d="M40 -10 Q 150 30 200 112" fill="none" stroke="#e8f4f6" stroke-width="3"/>
+  <g transform="translate(150 62)">
+    <line x1="0" y1="-30" x2="0" y2="-14" stroke="#e8f4f6" stroke-width="3"/>
+    <path d="M -20 0 A 20 20 0 0 1 20 0 Z" fill="#d13a2f"/>
+    <path d="M -20 0 A 20 20 0 0 0 20 0 Z" fill="#f5f5f0"/>
+    <circle r="20" fill="none" stroke="#3a1410" stroke-width="3"/>
+  </g>
+
+  <g fill="none" stroke="#4a3306" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="200" cy="124" r="11" stroke-width="9"/>
+    <path d="M200 136 V 238 A 44 44 0 0 1 112 238 V 214"/>
+    <path d="M112 214 L 132 236" stroke-width="12"/>
+  </g>
+  <g fill="none" stroke="#fff3b8" stroke-width="4" stroke-linecap="round" opacity="0.7">
+    <path d="M205 145 V 232"/>
+  </g>
+
+  <text x="200" y="368" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="56" font-weight="bold" stroke="#081a21" stroke-width="6" paint-order="stroke">
+    <tspan fill="#ffffff">Reel</tspan><tspan fill="#f2c94c">Gold</tspan>
+  </text>
+</svg>

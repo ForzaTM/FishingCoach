@@ -132,10 +132,21 @@ Repo mode copies only TOC-listed files + LICENSE; bundle mode copies `.\ReelGold
 - Commits use the owner's GitHub no-reply identity (repo-local git config); don't
   put personal email addresses in files.
 
+## CurseForge page assets
+`docs/curseforge/`: `description.md` (page text, Markdown), `project-settings.md`
+(form values + post-approval steps), `logo.svg` / `logo.png` (original 400x400
+design, no Blizzard art), `screenshots/*.png` (1280x720). Screenshots are a
+labelled MOCKUP rendered by `python tools/curseforge/make_screenshots.py`
+(headless Edge/Chrome, icons from the Wowhead CDN); replace them with real
+in-game screenshots when available. Re-render the logo with headless Edge
+(`--screenshot --window-size=400,400` on an HTML page embedding logo.svg).
+`docs/` is excluded from addon zips (`.pkgmeta` + `PACKAGE_IGNORE`).
+
 ## Open ideas / next steps
 - First real in-game test (`/rgold`, `/reload` after changes); fix what breaks.
 - Verify Forever uiMapIDs, zone skill requirements and fish in new zones; update Data/.
-- Set up CurseForge project + `CF_API_KEY` for automatic uploads.
+- Owner creates the CurseForge project (see docs/curseforge/project-settings.md), sets the
+  `CF_API_KEY` secret on their own (never handle the key), then add `## X-Curse-Project-ID:` and release.
 - Offered, not built: a browser UI preview driven by the mock (record SetPoint/SetSize/text
   and render it), as a layout check without the game.
 - Local reference pages (outside the repo, not maintained): `E:\ClaudeWork\ReelGold-ui-preview.html`

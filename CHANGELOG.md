@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Spots list: no empty separator for zones known only from your own data.
 
 ## 1.0.1 (2026-11-16)
 - Fix: spots where you already have your own catch data are no longer marked as too hard for your skill.

@@ -262,9 +262,12 @@ local function RefreshSpots(p)
             local here = (e.zone == currentZone) and " |cff33ff33(you are here)|r" or ""
             row.title:SetText(("%d. %s%s"):format(offset + i, e.zone, here))
             row.value:SetText(U.Money(e.perHour, true) .. "|cff999999/h|r")
-            local skillTxt = e.minSkill and ((e.canFish and "|cff33ff33" or "|cffff5555") .. "skill " .. e.minSkill .. "|r") or ""
-            local tag = e.learned and "|cff33ff33your data|r" or "|cff999999estimate|r"
-            row.sub:SetText(e.spot .. "  ·  " .. skillTxt .. "  ·  " .. tag)
+            local parts = { e.spot }
+            if e.minSkill then
+                parts[#parts + 1] = (e.canFish and "|cff33ff33" or "|cffff5555") .. "skill " .. e.minSkill .. "|r"
+            end
+            parts[#parts + 1] = e.learned and "|cff33ff33your data|r" or "|cff999999estimate|r"
+            row.sub:SetText(table.concat(parts, "  ·  "))
             row:Show()
         else
             row:Hide()
