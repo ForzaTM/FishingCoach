@@ -193,65 +193,76 @@ in-game screenshots when available. They don't show the For me / How to use tabs
 (`--screenshot --window-size=400,400` on an HTML page embedding logo.svg).
 `docs/` is excluded from addon zips (`.pkgmeta` + `PACKAGE_IGNORE`).
 
-## Status and next steps (handoff, end of 2026-11-16)
+## Status and next steps (handoff, updated 2026-11-17)
 
-Start here when resuming. Read the rest of this file for details.
+Start here when resuming. Generic WoW: Forever addon know-how (for new addons too) lives in
+`E:\ClaudeWork\CLAUDE.md` (the "WoW: Forever addon playbook").
 
 ### Where things stand
-- Code: `main` at github.com/ForzaTM/FishingCoach, everything pushed, CI green.
-  Tests: `npm test` (32 Lua scenarios) and `npm run test:installer` (10 PowerShell).
-- Released: only v1.0.0 and v1.0.1 (as "ReelGold"). Everything below is UNRELEASED
-  (see CHANGELOG "Unreleased"): rename to Fishing Coach, Options page, logo, HUD close button,
-  For me tab, gear checklist with owned/alt highlights, How to use tab, Auctionator auto
-  refresh + Refresh prices button, catch log AH prices + AH cut toggle in Settings,
-  update banner, click-to-show-on-map marker. DATA_VERSION is 2.
-- Installed in the owner's game (`D:\Games\World of Warcraft\_forever_\Interface\AddOns\FishingCoach`)
-  with the latest code; the installer migrated their old ReelGold saved variables.
-- Owner tested in game and reported "all good" BEFORE these were added, so they still need
-  an in-game check: rename/migration, map marker (X position on Forever maps), gear
-  highlights + alts, How to use first-launch, Options page tab width ("How to use" at 560 px).
-- The local folder is `E:\ClaudeWork\FishingCoach` (renamed from `ReelGold` on 2026-11-17;
-  the session's own Bash shell had held the old folder open).
+- **Released v1.1.0 on 2026-11-17** (tag `v1.1.0`): GitHub release
+  https://github.com/ForzaTM/FishingCoach/releases/tag/v1.1.0 (addon zip + Windows installer,
+  both verified) and uploaded to CurseForge.
+- **CurseForge project "Fishing Coach", ID 1812968**
+  (https://authors.curseforge.com/#/projects/1812968). MIT, 3rd-party distribution allowed,
+  comments off. File `v1.1.0-forever` uploaded as Release, game version **1.60.1** detected
+  automatically. Project + file were **awaiting moderation** at the end of 2026-11-17; check the
+  Files tab status next time (Processing -> Approved). Owner was advised to add real
+  screenshots (Media tab) and consider enabling comments.
+- `main` is clean and pushed, CI green. Tests: `npm test` (32 Lua scenarios),
+  `npm run test:installer` (10 PowerShell).
+- Local folder: `E:\ClaudeWork\FishingCoach` (renamed from ReelGold on 2026-11-17).
+- Installed in the owner's game (`D:\Games\World of Warcraft\_forever_\Interface\AddOns\FishingCoach`).
+- Not yet checked in game by the owner: map X on Forever maps, gear highlights + alts,
+  How to use first launch, "How to use" tab label width at 560 px, renamed addon/migration.
 
-### CurseForge publishing
-Project created 2026-11-17: **Fishing Coach, project ID 1812968**
-(https://authors.curseforge.com/#/projects/1812968), MIT, 3rd-party distribution allowed,
-comments off. Awaiting moderation; it needs a first file (the v1.1.0 release uploads it).
-`## X-Curse-Project-ID: 1812968` is in FishingCoach.toc.
+### Releasing an update (the normal loop)
+1. Make the change; add tests in `tests/scenarios.lua` (fake API in `tests/wowmock.lua`).
+2. `npm test` and `npm run test:installer`.
+3. Add a line under `## Unreleased` in CHANGELOG.md.
+4. When the owner wants a release: move Unreleased into `## X.Y.Z (date)`, commit, push,
+   **ask the owner**, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+5. Watch: `gh run list --repo ForzaTM/FishingCoach --workflow release.yml --limit 1`,
+   `gh run watch <id> --exit-status`, check the log for "Uploading ... Success!" and the
+   game version, then verify both GitHub zips (no `.release/`, tests/, tools/, docs/).
+6. Reinstall locally: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/installer/install.ps1 -Path "D:\Games\World of Warcraft" -Yes`.
+   Tag names containing `beta`/`alpha` publish as Beta/Alpha on CurseForge.
 
-1. DONE: `CF_API_KEY` secret set on ForzaTM/FishingCoach (survived the repo rename).
-2. TODO (owner): create the CurseForge project named **Fishing Coach** using
-   `docs/curseforge/project-settings.md` + `description.md` + `logo.png`; real in-game
-   screenshots preferred (the mockups in `docs/curseforge/screenshots/` lack the newest tabs).
-3. TODO (owner): after moderation approval, send the numeric Project ID.
-4. Then (Claude): add `## X-Curse-Project-ID: <id>` to `FishingCoach.toc`, turn CHANGELOG
-   "Unreleased" into `## 1.1.0 (date)`, run both test suites, commit, ASK the owner, then
-   `git tag v1.1.0 && git push origin main v1.1.0`. Watch the Release workflow; verify the
-   CurseForge file, the GitHub release zip (`FishingCoach-v1.1.0-forever.zip`) and the
-   Windows installer zip. If CurseForge rejects the game version, the owner uploads the
-   first zip by hand and picks the Forever version.
+### When WoW: Forever gets a new patch
+1. Owner runs in game: `/dump select(4, GetBuildInfo())` (interface) and notes the client
+   version shown at login (e.g. 1.61.0). Cross-check: Auctionator's TOC `## Interface:` list.
+2. `python tools/release.py bump --interface <n> --client <x.y.z>` (TOC + Data/GameVersion.lua
+   + CHANGELOG line).
+3. Read the patch's API notes (warcraft.wiki.gg "Patch <x>/API changes"); fix renamed APIs in
+   `Core/Compat.lua` AND `tests/wowmock.lua`; `npm test`.
+4. If fishing content changed: edit `Data/*.lua`, then
+   `python tools/release.py data --note "..."` (bumps DATA_VERSION; players see a notice).
+5. Release as above. CurseForge needs to know the new game version; if the upload log
+   says the version is unknown, the owner picks it in the CurseForge file form.
+6. Players on the new client see the in-window "WoW: Forever was updated" banner until
+   they update (shown when client interface > TESTED_INTERFACE).
 
 ### Things that are unverified or approximate
 - Seed spot coordinates (`x`, `y` in Data/Locations.lua) are approximate, from classic maps;
   only Booty Bay and Forgotten Pools were cross-checked with Forever data.
 - Gloves fishing enchant ID 845 (classic); Fishing Hut blueprint source undocumented.
-- Interface 16001 is confirmed by Auctionator 347's TOC; client 1.60.1.
+- Interface 16001 confirmed by Auctionator 347's TOC; client 1.60.1.
 
 ### Owner preferences
 - Ask clarifying questions when unsure; confirm before anything public (tags, releases,
   repo changes beyond what was asked). Never handle API keys.
 - Owner chose: no guild/group addon messages (Fishing Coach sends nothing), AH cut toggle
-  lives in Settings, name "Fishing Coach".
+  lives in Settings, name "Fishing Coach", allow 3rd-party distribution.
 
 ### Tooling gotcha for Claude sessions
-- Bash heredocs in this environment can collapse `\\` to `\` and turn `\b` into a backspace
-  character. Write Lua/PowerShell/JS that contains backslashes with the Write/Edit tools, or
-  build strings with `chr(92)` in Python. Lua 5.3 (Fengari) fails on bad escapes, so
-  `npm test` catches it in Lua files.
+- Bash heredocs here can collapse `\\` to `\` and turn `\b` into a backspace character.
+  Write code with backslashes using the Write/Edit tools, or `chr(92)` in Python.
+- The session's own Bash shell keeps a lock on the folder it is `cd`'d into (blocked the
+  folder rename until the shell left it).
 
 ### Ideas not built yet
 - Browser UI preview driven by the mock (record SetPoint/SetSize/text and render it).
 - Verify Forever zone skill requirements and fish in the new zones (Riverglades, Mount Hyjal,
   Shen'dralas, Zephras Isle); add seed spots once known.
+- Refresh CurseForge mockup screenshots or replace with real ones (tools/curseforge/make_screenshots.py).
 - Local reference pages outside the repo (not maintained):
   `E:\ClaudeWork\FishingCoach-ui-preview.html` and `E:\ClaudeWork\FishingCoach-icon-gallery.html`.
