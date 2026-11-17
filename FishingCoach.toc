@@ -8,6 +8,7 @@
 ## SavedVariables: FishingCoachDB
 ## SavedVariablesPerCharacter: FishingCoachCharDB
 ## OptionalDeps: Auctionator, TradeSkillMaster
+## X-Curse-Project-ID: 1812968
 ## AddonCompartmentFunc: FishingCoach_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: FishingCoach_OnAddonCompartmentEnter
 ## AddonCompartmentFuncOnLeave: FishingCoach_OnAddonCompartmentLeave

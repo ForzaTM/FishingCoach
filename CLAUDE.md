@@ -213,7 +213,12 @@ Start here when resuming. Read the rest of this file for details.
 - The local folder is `E:\ClaudeWork\FishingCoach` (renamed from `ReelGold` on 2026-11-17;
   the session's own Bash shell had held the old folder open).
 
-### CurseForge publishing (blocked on the owner)
+### CurseForge publishing
+Project created 2026-11-17: **Fishing Coach, project ID 1812968**
+(https://authors.curseforge.com/#/projects/1812968), MIT, 3rd-party distribution allowed,
+comments off. Awaiting moderation; it needs a first file (the v1.1.0 release uploads it).
+`## X-Curse-Project-ID: 1812968` is in FishingCoach.toc.
+
 1. DONE: `CF_API_KEY` secret set on ForzaTM/FishingCoach (survived the repo rename).
 2. TODO (owner): create the CurseForge project named **Fishing Coach** using
    `docs/curseforge/project-settings.md` + `description.md` + `logo.png`; real in-game

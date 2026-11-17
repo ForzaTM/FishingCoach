@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## 1.1.0 (2026-11-17)
 - Click a spot on the For me or Spots tab to open the world map on that zone with a red X at the spot. The X uses where you actually catch fish in that zone (remembered per zone); otherwise an approximate area for well-known spots. Right-click the X or `/fcoach clearmap` to remove it. Works with WoW: Forever's map (no Blizzard waypoint needed); in combat the X waits until you open the map.
 - Data v2: Map positions for fishing spots (2026-11-16)
 - **Renamed from ReelGold to Fishing Coach.** Folder `FishingCoach`, commands `/fcoach` and `/fishingcoach`. The installer removes the old ReelGold folder and carries your settings and fishing history over.
