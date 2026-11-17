@@ -210,8 +210,8 @@ Start here when resuming. Read the rest of this file for details.
 - Owner tested in game and reported "all good" BEFORE these were added, so they still need
   an in-game check: rename/migration, map marker (X position on Forever maps), gear
   highlights + alts, How to use first-launch, Options page tab width ("How to use" at 560 px).
-- The local folder is still `E:\ClaudeWork\ReelGold` (Windows refused the rename while the
-  session had it open). Owner may rename it to `E:\ClaudeWork\FishingCoach`; check both.
+- The local folder is `E:\ClaudeWork\FishingCoach` (renamed from `ReelGold` on 2026-11-17;
+  the session's own Bash shell had held the old folder open).
 
 ### CurseForge publishing (blocked on the owner)
 1. DONE: `CF_API_KEY` secret set on ForzaTM/FishingCoach (survived the repo rename).
@@ -249,4 +249,4 @@ Start here when resuming. Read the rest of this file for details.
 - Verify Forever zone skill requirements and fish in the new zones (Riverglades, Mount Hyjal,
   Shen'dralas, Zephras Isle); add seed spots once known.
 - Local reference pages outside the repo (not maintained):
-  `E:\ClaudeWork\ReelGold-ui-preview.html` and `E:\ClaudeWork\ReelGold-icon-gallery.html`.
+  `E:\ClaudeWork\FishingCoach-ui-preview.html` and `E:\ClaudeWork\FishingCoach-icon-gallery.html`.
